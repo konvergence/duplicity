@@ -1,0 +1,13 @@
+# account config
+account default
+host ${SMTP_HOST}
+port ${SMTP_PORT}
+from ${SMTP_FROM}
+tls ${SMTP_TLS}
+tls_certcheck off
+tls_starttls on
+auth ${SMTP_AUTH}
+user  ${SMTP_USER}
+password ${SMTP_PASS}
+
+

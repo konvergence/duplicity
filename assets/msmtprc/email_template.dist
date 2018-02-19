@@ -1,0 +1,6 @@
+From: ${SMTP_FROM}
+To: ${SMTP_TO}
+Subject: jobber error on ${JOB_NAME}
+
+output:
+
