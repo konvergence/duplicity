@@ -1,7 +1,28 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-# 0.7.06 : 2018-02-19
+
+# latest,  0.7.06, 0.7.06.2 : 2018-02-22
+
+### Added
+    Allow to remove older backup based on WEEK or MONTH instead of number of backupset
+
+    DAILY_BACKUP_MAX_WEEK=5 : allow to remove older backupset with duplicity remove-older-than <time>, where  <time> =  now + (5 * 7 days)
+                              if DAILY_BACKUP_MAX_WEEK > 0 then   DAILY_BACKUP_MAX_FULL and  DAILY_BACKUP_MAX_FULL_WITH_INCR must be  = 0
+
+    MONTHLY_BACKUP_MAX_MONTH=12 : allow to remove older backupset with duplicity remove-older-than <time>, where  <time> =  now + (12 * 31 days)
+                                   if MONTHLY_BACKUP_MAX_MONTH > 0 then   MONTHLY_BACKUP_MAX_FULL and  MONTHLY_BACKUP_MAX_FULL_WITH_INCR must be  = 0
+
+### Changes
+    DAILY_BACKUP_MAX_FULL=0
+    DAILY_BACKUP_MAX_FULL_WITH_INCR=0
+
+    MONTHLY_BACKUP_MAX_FULL=0
+    MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0
+
+
+
+# 0.7.06.1 : 2018-02-19
 
 ### summary of functionalities
    - Allow daily backup into filesystem and/or SWIFT container with TTL retention

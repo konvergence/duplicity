@@ -314,10 +314,19 @@ backup_to_filesystem_container() {
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
     local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
     local duplicity_target="file://${!filesystem_container_variable}"
+    local timstamp=""
     
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
             
-            
+    if [ "${planner}" == "DAILY" ] && [ ${DAILY_BACKUP_MAX_WEEK} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "DAILY_BACKUP_MAX_WEEK > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${DAILY_BACKUP_MAX_WEEK}*7)) days")
+    fi
+
+    if [ "${planner}" == "MONTHLY" ] && [ ${MONTHLY_BACKUP_MAX_MONTH} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "MONTHLY_BACKUP_MAX_MONTH > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${MONTHLY_BACKUP_MAX_MONTH}*31)) days")
+    fi
 
     if [ ! -z ${!filesystem_container_variable+x} ] ; then
     
@@ -336,16 +345,25 @@ backup_to_filesystem_container() {
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
-            
+
+            if [ ! -z "${timstamp}" ]; then
+                verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
+                on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+            fi
+
             if [ ${!max_full_with_incr_variable} -gt 0 ]; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
-            duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
-            on_error_fatal_message "during prune older full backup"
+            if [ ${!max_full_variable} -gt 0 ]; then
+                verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
+                on_error_fatal_message "during prune older full backup"
+            fi
+
         else
             fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
         fi
@@ -372,7 +390,7 @@ backup_to_swift_container() {
     local max_full_variable="${planner}_BACKUP_MAX_FULL"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
     local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
-
+    local timstamp=""
         
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -383,6 +401,16 @@ backup_to_swift_container() {
     local duplicity_target="swift://${!swift_container_variable}"
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
+
+    if [ "${planner}" == "DAILY" ] && [ ${DAILY_BACKUP_MAX_WEEK} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "DAILY_BACKUP_MAX_WEEK > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${DAILY_BACKUP_MAX_WEEK}*7)) days")
+    fi
+
+    if [ "${planner}" == "MONTHLY" ] && [ ${MONTHLY_BACKUP_MAX_MONTH} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "MONTHLY_BACKUP_MAX_MONTH > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${MONTHLY_BACKUP_MAX_MONTH}*31)) days")
+    fi
 
     if [ ! -z ${!swift_container_variable+x} ] ; then
     
@@ -401,16 +429,24 @@ backup_to_swift_container() {
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
-            
+
+            if [ ! -z "${timstamp}" ]; then
+                verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
+                on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+            fi
+
             if [ ${!max_full_with_incr_variable} -gt 0 ]; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
-            duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
-            on_error_fatal_message "during prune older full backup"
+            if [ ${!max_full_variable} -gt 0 ]; then
+                    verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                    duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
+                    on_error_fatal_message "during prune older full backup"
+            fi
         else
             fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
         fi

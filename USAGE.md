@@ -100,19 +100,20 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
    using OS_XXXX variables (OS_REGION_NAME, OS_AUTH_URL, OS_TENANT_ID, OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD) for all  XXXX_SWIFT_CONTAINER
 
 ###   retention
-     if backup is succeed, then    remove backup full with increments older than ${DAILY_BACKUP_MAX_FULL_WITH_INCR} ,and older backup full older than ${DAILY_BACKUP_MAX_FULL} into ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER}
+     if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER}
 
 
 ###   Default values
     - DAILY_JOB_HOUR="00 00 02" : in jobber cron time format SS MM HH
     - DAILY_BACKUP_FULL_DAY=0 : day of week to make a full backup 0 - 6 => Sunday - Saturday
-    - DAILY_BACKUP_MAX_FULL_WITH_INCR=2 : max last week with incremental backup
-    - DAILY_BACKUP_MAX_FULL=5 : max week to keep
+    - DAILY_BACKUP_MAX_WEEK=5 : max week to keep
     - DAILY_BACKUP_PREFIX=backup
 
 ####  Optionals variables
       DAILY_FILESYSTEM_CONTAINER=/backup              : nfs or local filesystem backup folder
       DAILY_SWIFT_CONTAINER=my-object-storage-gra3    : name of swift container
+      DAILY_BACKUP_MAX_FULL=0 : if > 0, max full to keep
+      DAILY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
 
 
@@ -123,16 +124,17 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
     backup is trigger from ${DATA_FOLDER}if day of month is ${MONTHLY_BACKUP_DAY} only if  ${MONTHLY_FILESYSTEM_CONTAINER} or ${MONTHLY_SWIFT_CONTAINER} are defined
 
 ###   retention
-     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_FULL} into ${MONTHLY_FILESYSTEM_CONTAINER} or ${MONTHLY_SWIFT_CONTAINER}
+     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_FILESYSTEM_CONTAINER} or ${MONTHLY_SWIFT_CONTAINER}
 
    
 ###   Default values
       MONTHLY_BACKUP_DAY=1 : day of month to trigger full backup into archive  : 1 thru 31
-      MONTHLY_BACKUP_MAX_FULL=12  : number of full backup to keep
+      MONTHLY_BACKUP_MAX_MONTH=12  : max month to keep
       MONTHLY_BACKUP_PREFIX=archive  : archive prefix
 
-
-
+####  Optionals variables
+      MONTHLY_BACKUP_MAX_FULL=0: if > 0 , max full to keep
+      MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
 
 
