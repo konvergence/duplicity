@@ -232,9 +232,9 @@ make_backup() {
     if [ -z "${planner}" ] && [ -z "${container_type}" ]; then
     
     
-       #if ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINTER} is nor defined failed
-       if [ -z ${DAILY_FILESYSTEM_CONTAINER+x} ] && [ -z ${DAILY_SWIFT_CONTAINTER+x} ]; then
-          exit_fatal_message "DAILY_FILESYSTEM_CONTAINER and/or DAILY_SWIFT_CONTAINTER  must be defined"
+       #if ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER} is nor defined failed
+       if [ -z ${DAILY_FILESYSTEM_CONTAINER+x} ] && [ -z ${DAILY_SWIFT_CONTAINER+x} ]; then
+          exit_fatal_message "DAILY_FILESYSTEM_CONTAINER and/or DAILY_SWIFT_CONTAINER  must be defined"
        fi
 
 
