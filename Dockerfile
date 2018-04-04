@@ -11,7 +11,7 @@ RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" 
 # Image Label
 LABEL maintainer="infracloud@konvergence.com" \
       website="https://www.konvergence.com" \
-      description="volume backup with duplicity using openstack swift or nfs volume" \
+      description="volume backup with duplicity using openstack swift, pca or nfs volume" \
       release="${RELEASE}" 
  
 ENV GOPATH=/opt/go \
@@ -19,17 +19,24 @@ ENV GOPATH=/opt/go \
 
 ARG JOBBER_VERSION="v1.2"
 
+## see https://docs.ovh.com/gb/en/storage/pca/duplicity/
 
 RUN apt-get update \
-    && apt-get install -y tzdata \
+   && apt-get install -y  tzdata \
                           gettext-base \
                           postgresql-client-9.5 \
                           mysql-client-5.7 \
-                          python-glanceclient python-novaclient python-swiftclient \
+                          python-swiftclient \
                           msmtp \
                           git curl  golang-go \
                           jq \
-                          duplicity \
+&& echo "#### intall duplicity 8.0" \
+   && apt-get install -y  bzr gcc librsync-dev python python-dev python-pip \
+   && bzr branch lp:duplicity \
+   && pip install --upgrade pip \
+   && pip install setuptools wheel \
+   && cd /duplicity; pip install -r requirements.txt \
+   && cd /duplicity; python setup.py install \
 && echo "#### create Go home" \
     && mkdir -p /opt/go \
     && chmod 775 /opt/go \

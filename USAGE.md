@@ -7,43 +7,43 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 # General usage
 
 ## summary of functionalities
-   - use duplicity to make backup into filesystem and/or SWIFT container
+   - use duplicity to make backup into filesystem/swift/pca container
    - database backup is done if ${DB_TYPE} is defined with other DB_XXXX variables into ${DATA_FOLDER}
    - duplicity backup if done on ${DATA_FOLDER}
    - Allow daily and monthly backup with associated prefix into containers and TTL retention
    
 ## available commands
        "--help" : display the help
-       "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift if defined
+       "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift/pca if defined
 
-       "--backup  [[daily|monthly] [filesystem|swift] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
+       "--backup  [[daily|monthly] [filesystem|swift|pca] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
 
-       "--delete-older <time>" [[daily|monthly]  [filesystem|swift]]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore <time>" [[daily|monthly]  [filesystem|swift]]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-latest" [[daily|monthly]  [filesystem|swift]]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift]]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--delete-older <time>" [[daily|monthly]  [filesystem|swift|pca]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore <time>" [[daily|monthly]  [filesystem|swift|pca]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-latest" [[daily|monthly]  [filesystem|swift|pca]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift|pca]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--content  <time>" [[daily|monthly]  [filesystem|swift]]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
-       "--content-latest" [[daily|monthly]  [filesystem|swift]]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content  <time>" [[daily|monthly]  [filesystem|swift|pca]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content-latest" [[daily|monthly]  [filesystem|swift|pca]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
    
    
-       "--list" [[daily|monthly]  [filesystem|swift]]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
+       "--list" [[daily|monthly]  [filesystem|swift|pca]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--cleanup" [[daily|monthly]  [filesystem|swift]]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
+       "--cleanup" [[daily|monthly]  [filesystem|swift|pca]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--compare <time>" [[daily|monthly]  [filesystem|swift]]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--compare-latest" [[daily|monthly]  [filesystem|swift]]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--comapre-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift]]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare <time>" [[daily|monthly]  [filesystem|swift|pca]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare-latest" [[daily|monthly]  [filesystem|swift|pca]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--comapre-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift|pca]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
 
 
 ## Default general options
-          EXCLUDE_PATHS="" : list of paths to exclude from backup into ${DATA_FOLDER}
-          CLEAN_BEFORE_RESTORE=no : if yes, then clean  ${DATA_FOLDER} folder before restore
-          VERBOSE=yes   :      details of running command
-          VERBOSE_PROGRESS=yes : details of duplicity progress
-          TZ=Europe/Paris : timezone for logs and jobber time
-          BACKUP_VOLUME_SIZE=256 : max size in MB of each volume. A backup is composed of severals volumes
-          PASSPHRASE=xxxxxx                : mandatory passphrase GPG symetric
+    EXCLUDE_PATHS="" : list of paths to exclude from backup into ${DATA_FOLDER}
+    CLEAN_BEFORE_RESTORE=no : if yes, then clean  ${DATA_FOLDER} folder before restore
+    VERBOSE=yes   :      details of running command
+    VERBOSE_PROGRESS=yes : details of duplicity progress
+    TZ=Europe/Paris : timezone for logs and jobber time
+    BACKUP_VOLUME_SIZE=256 : max size in MB of each volume. A backup is composed of severals volumes
+    PASSPHRASE=xxxxxx                : mandatory passphrase GPG symetric
 
 ##  Database backup management
      to allow backup/restore you must define DB_TYPE variable and other DB_XXXX variable are defined (DB_HOST,DB_PORT, DB_SYSTEM_USER, DB_SYSTEM_PASSWORD, DB_SYSTEM_REPO)
@@ -58,7 +58,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
      - DB_DUMP_FILE=dumpall.out
      - DB_INSTANCE=ORCLCDB : for oracle only
 
-##  OpenStack authentication for  SWIFT container management
+##  OpenStack authentication for  SWIFT or PCA container management
     DAILY_OS_REGION_NAME=GRA3
     MONTHLY_OS_REGION_NAME=SBG3
 
@@ -100,7 +100,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
    using OS_XXXX variables (OS_REGION_NAME, OS_AUTH_URL, OS_TENANT_ID, OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD) for all  XXXX_SWIFT_CONTAINER
 
 ###   retention
-     if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER}
+     if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_[FILESYSTEM|SWIFT|PCA]_CONTAINER}
 
 
 ###   Default values
@@ -112,6 +112,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 ####  Optionals variables
       DAILY_FILESYSTEM_CONTAINER=/backup              : nfs or local filesystem backup folder
       DAILY_SWIFT_CONTAINER=my-object-storage-gra3    : name of swift container
+      DAILY_PCA_CONTAINER=my-object-storage-gra3    : name of pca container
       DAILY_BACKUP_MAX_FULL=0 : if > 0, max full to keep
       DAILY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
@@ -121,10 +122,10 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 ## 	monthly backup management
 
 ###   working
-    backup is trigger from ${DATA_FOLDER}if day of month is ${MONTHLY_BACKUP_DAY} only if  ${MONTHLY_FILESYSTEM_CONTAINER} or ${MONTHLY_SWIFT_CONTAINER} are defined
+    backup is trigger from ${DATA_FOLDER}if day of month is ${MONTHLY_BACKUP_DAY} only if  ${MONTHLY_[FILESYSTEM|SWIFT|PCA]_CONTAINER} are defined
 
 ###   retention
-     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_FILESYSTEM_CONTAINER} or ${MONTHLY_SWIFT_CONTAINER}
+     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_[FILESYSTEM|SWIFT|PCA]_CONTAINER}
 
    
 ###   Default values
@@ -133,6 +134,9 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
       MONTHLY_BACKUP_PREFIX=archive  : archive prefix
 
 ####  Optionals variables
+      MONTHLY_FILESYSTEM_CONTAINER=/backup              : nfs or local filesystem backup folder
+      MONTHLY_SWIFT_CONTAINER=my-archive-storage-sbg3    : name of swift container
+      MONTHLY_PCA_CONTAINER==my-archive-storage-sbg3    : name of swift container
       MONTHLY_BACKUP_MAX_FULL=0: if > 0 , max full to keep
       MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 

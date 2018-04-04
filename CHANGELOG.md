@@ -2,7 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
-# latest,  0.7.06, 0.7.06.2 : 2018-02-22
+# latest,  0.8.0, 0.8.0.4 : 2018-04-03
+
+### Added
+     Use prerelease 0.8.0 to allox PCA backend : see see https://docs.ovh.com/gb/en/storage/pca/duplicity/
+     add DAILY_PCA_CONTAINER and MONTHLY_PCA_CONTAINER
+
+
+# 0.7.06, 0.7.06.2 : 2018-02-22
 
 ### Added
     Allow to remove older backup based on WEEK or MONTH instead of number of backupset

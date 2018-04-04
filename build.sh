@@ -11,7 +11,7 @@ popd
 
 # Release Build of the Docker Image
 # Final Docker Image Name
-export IMAGE_BUILD="3"
+export IMAGE_BUILD="4"
 export DOCKER_REPO=konvergence/duplicity
 
 
