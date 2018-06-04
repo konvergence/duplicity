@@ -199,6 +199,40 @@ _EOF_
 
 }
 
+check_backend() {
+    local planner=${1,,}
+    local container_type=${2,,}
+
+    # check if container_type exist
+    local container_variable
+    local backend
+    for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
+            backend=$(echo $container_variable | cut -d_ -f2)
+            backend=${backend,,}
+            [ "$container_type" = "$backend" ] && return 0
+    done
+
+    return 1
+}
+
+get_default_backend() {
+    local planner=${1,,}
+
+   [ ! -z "$DEFAULT_CONTAINER" ] && echo $DEFAULT_CONTAINER && return 0
+
+    # check last CONTAINER
+    local container_variable
+    local backend
+    for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
+            backend=$(echo $container_variable | cut -d_ -f2)
+            backend=${backend,,}
+    done
+
+    [ ! -z "$backend" ] && echo $backend && return 0
+
+    return 1
+}
+
 
 make_backup() {
 
@@ -216,7 +250,9 @@ make_backup() {
     [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
     
     [ ! -z "${planner}" ] && [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ! -z "${container_type}" ] && [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+   
+    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
 
@@ -615,10 +651,11 @@ delete_older_backup() {
 
    [ -z "${timstamp}" ] && exit_fatal_message "timstamp like $(date "+%Y-%m-%dT%T") must be given"
    [ -z "${planner}" ] && planner="daily"
-   [ -z "${container_type}" ] && container_type="filesystem"
+   [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ]  && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
    
    delete_older_backup_from_${container_type}_container ${timstamp} ${planner}
 }
@@ -704,11 +741,12 @@ restore_backup() {
     
    [ -z "${timstamp}" ] && exit_fatal_message "timstamp like $(date "+%Y-%m-%dT%T") must be given"
    [ -z "${planner}" ] && planner="daily"
-   [ -z "${container_type}" ] && container_type="filesystem"
+   [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
    
    restore_backup_from_${container_type}_container ${timstamp} ${planner}
 }
@@ -883,11 +921,12 @@ content_backup() {
     
    [ -z "${timstamp}" ] && exit_fatal_message "timstamp like $(date "+%Y-%m-%dT%T") must be given"
    [ -z "${planner}" ] && planner="daily"
-   [ -z "${container_type}" ] && container_type="filesystem"
+   [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
    
    content_backup_from_${container_type}_container ${timstamp} ${planner}
 }
@@ -982,10 +1021,12 @@ list_backupset() {
     local container_type=${2,,}
     
     [ -z "${planner}" ] && planner="daily"
-    [ -z "${container_type}" ] && container_type="filesystem"
+    [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
     
      [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+
+     [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
     
     list_backupset_from_${container_type}_container ${planner}
 
@@ -1067,10 +1108,11 @@ cleanup_backupset() {
     local container_type=${2,,}
     
     [ -z "${planner}" ] && planner="daily"
-    [ -z "${container_type}" ] && container_type="filesystem"
+    [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
     
      [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+     [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+
     
     cleanup_backupset_from_${container_type}_container ${planner}
 
@@ -1154,11 +1196,11 @@ compare_backup() {
     
    [ -z "${timstamp}" ] && exit_fatal_message "timstamp like $(date "+%Y-%m-%dT%T") must be given"
    [ -z "${planner}" ] && planner="daily"
-   [ -z "${container_type}" ] && container_type="filesystem"
+   [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
-    [ ${container_type} != "filesystem" ] && [ ${container_type} != "swift" ] && [ ${container_type} != "pca" ] && exit_fatal_message "unknown container mode"
+     [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
    
    compare_backup_from_${container_type}_container ${timstamp} ${planner}
 }
