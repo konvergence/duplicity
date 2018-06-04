@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 
         need SFTP_USER  with SFTP_PASSWORD or SFTP_IDENTITYFILE
             if SFTP_PASSWORD is defined, then generate the following backend  sftp://${SFTP_USER}:${SFTP_PASSWORD}@${DAILY_SFTP_CONTAINER}
-            if SFTP_SSHKEY is defined, then generate the following backend  sftp://${SFTP_USER}@${DAILY_SFTP_CONTAINER} and --ssh-options="-oIdentityFile=${SFTP_IDENTITYFILE}"
+            if SFTP_IDENTITYFILE is defined, then generate the following backend  sftp://${SFTP_USER}@${DAILY_SFTP_CONTAINER} and --ssh-options="-oIdentityFile=${SFTP_IDENTITYFILE}"
 
 # 0.8.0, 0.8.0.4 : 2018-04-03
 

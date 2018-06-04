@@ -77,3 +77,7 @@ export PCA_TENANTID=${PCA_TENANTID:-${OS_TENANT_ID}}
 export PCA_TENANTNAME=${PCA_TENANTNAME:-${OS_TENANT_NAME}}
 export PCA_USERNAME=${PCA_USERNAME:-${OS_USERNAME}}
 
+
+# initialize sftp backend
+export SFTP_MODULE=${SFTP_MODULE:-pexpect+sftp}
+export SSH_OPTIONS=${SSH_OPTIONS:--oStrictHostKeyChecking=no}

@@ -34,7 +34,11 @@ RUN apt-get update \
    && apt-get install -y software-properties-common python-software-properties \
    && add-apt-repository -y ppa:duplicity-team/ppa \
    && apt-get update \
-   && apt-get install -y  duplicity=0.7.17-0ubuntu0ppa1353~ubuntu16.04.1 \ 
+   && apt-get install -y  duplicity=0.7.17-0ubuntu0ppa1353~ubuntu16.04.1 \
+&& echo "#### install sftp/scp paramiko module" \
+   && apt-get install -y python-paramiko python-gobject-2 \
+&& echo "#### install sftp/scp pexpect module" \
+   && apt-get install -y openssh-client python-pexpect \
 && echo "#### create Go home" \
     && mkdir -p /opt/go \
     && chmod 775 /opt/go \
@@ -106,7 +110,8 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     MONTHLY_BACKUP_DAY=1 \
     MONTHLY_BACKUP_PREFIX=archive \
     MONTHLY_BACKUP_MAX_MONTH=12 \
-    MONTHLY_OS_REGION_NAME=SBG3
+    MONTHLY_OS_REGION_NAME=SBG3 \
+    SFTP_MODULE=pexpect+sftp
 
 ##    PASSPHRASE=YourSuperPassPhrase \
 ##    DAILY_BACKUP_MAX_FULL_WITH_INCR=0 \
