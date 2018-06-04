@@ -21,6 +21,7 @@ ARG JOBBER_VERSION="v1.2"
 ARG DUPLICITY_RELEASE=${RELEASE}
 
 RUN apt-get update \
+   && apt-get install -y --no-install-recommends apt-utils \
    && apt-get install -y  tzdata \
                           gettext-base \
                           postgresql-client-9.5 \
@@ -30,8 +31,10 @@ RUN apt-get update \
                           git curl  golang-go \
                           jq \
 && echo "#### intall duplicity ppa " \
-   && add-apt-repository y ppa:duplicity-team/ppa \
-   && apt-get install -y  duplicty=0.7.17-0ubuntu0ppa1353~ubuntu16.04.1 \ 
+   && apt-get install -y software-properties-common python-software-properties \
+   && add-apt-repository -y ppa:duplicity-team/ppa \
+   && apt-get update \
+   && apt-get install -y  duplicity=0.7.17-0ubuntu0ppa1353~ubuntu16.04.1 \ 
 && echo "#### create Go home" \
     && mkdir -p /opt/go \
     && chmod 775 /opt/go \
