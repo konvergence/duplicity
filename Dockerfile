@@ -9,7 +9,7 @@ ARG RELEASE
 RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" ]
 
 # Image Label
-LABEL maintainer="infracloud@konvergence.com" \
+LABEL maintainer="konvergence.com" \
       website="https://www.konvergence.com" \
       description="volume backup with duplicity using openstack swift, sftp or filesystem volume" \
       release="${RELEASE}" 
