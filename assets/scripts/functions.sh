@@ -210,6 +210,8 @@ make_backup() {
     
     local day_of_week=$(date +%w)
     local day_of_month=$(date +%d)
+
+    local container_variable
     
     [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
     
@@ -228,81 +230,44 @@ make_backup() {
         on_error_exit_fatal_message "backup error ${DB_TYPE}"
    fi 
 
-# run all modes if no args
+# if no args, try all DAILY_xxxx_CONTAINER
     if [ -z "${planner}" ] && [ -z "${container_type}" ]; then
     
-    
-       #if ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER} is nor defined failed
-       if [ -z ${DAILY_FILESYSTEM_CONTAINER+x} ] && [ -z ${DAILY_SWIFT_CONTAINER+x} ]; then
-          exit_fatal_message "DAILY_FILESYSTEM_CONTAINER and/or DAILY_SWIFT_CONTAINER  must be defined"
-       fi
+        # check that a DAILY_XXXX_CONTAINER is defined
+        if  ! env | cut -d= -f1 | grep DAILY | grep CONTAINER > /dev/null; then
+            exit_fatal_message "one or more DAILY_xxxxx_CONTAINER must be defined"
+        fi
+
+        for container_variable in $(env | cut -d= -f1 | grep DAILY | grep CONTAINER); do
+                container_type=$(echo $container_variable | cut -d_ -f2)
+                container_type=${container_type,,}
+                verbose_message  "-------------- ${container_type} backend -----------------"
+                # try weekly push if day of week is good
+                if [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ]; then
+                    backup_to_${container_type}_container daily full
+                  else
+                    backup_to_${container_type}_container daily ${backup_mode}
+                fi
+                # try monthly push if day of month is good
+                [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] && backup_to_${container_type}_container monthly full
+        done
 
 
-
-        #### backup to all xxxx_FILESYSTEM_CONTAINER 
-        verbose_message "--------------filesystem backend -----------------"
-        
-            # try weekly push if day of week is good
-            if [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ]; then
-                backup_to_filesystem_container daily full
-            else
-                backup_to_filesystem_container daily ${backup_mode}
-            fi
-        
-            # try monthly push if day of month is good
-            [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] && backup_to_filesystem_container monthly full
-
-
-        ####backup to all xxxx_SWIFT_CONTAINER
-        verbose_message "--------------swift backend -----------------"
-        
-            # daily backup at call
-
-            
-            # try weekly push if day of week is good
-            if [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ]; then
-                backup_to_swift_container daily full
-            else
-                    backup_to_swift_container daily ${backup_mode}
-            fi
-            
-            # try monthly push if day of month is good
-            [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] && backup_to_swift_container monthly full
-
-
-        ####backup to all xxxx_SPCA_CONTAINER
-        verbose_message "--------------swift backend -----------------"
-        
-            # daily backup at call
-
-            
-            # try weekly push if day of week is good
-            if [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ]; then
-                backup_to_pca_container daily full
-            else
-                    backup_to_pca_container daily ${backup_mode}
-            fi
-            
-            # try monthly push if day of month is good
-            [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] && backup_to_pca_container monthly full
-
-
+# if only planner type, try with all container
     elif [ ! -z "${planner}" ] && [ -z "${container_type}" ]; then
     
-            [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+            # check that a ${planner^^}_XXXX_CONTAINER  is defined
+            if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
+                exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
+            fi
 
-            #### backup to all planner_FILESYSTEM_CONTAINER 
-        verbose_message "--------------filesystem backend -----------------"
-        
-             backup_to_filesystem_container ${planner} ${backup_mode}
-             
-             #### backup to all planner_SWIFT_CONTAINER 
-        verbose_message "--------------swift backend -----------------"
-             backup_to_swift_container ${planner} ${backup_mode}
+        for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
+                container_type=$(echo $container_variable | cut -d_ -f2)
+                container_type=${container_type,,}
 
-             #### backup to all planner_PCA_CONTAINER 
-        verbose_message "--------------swift backend -----------------"
-             backup_to_pca_container ${planner} ${backup_mode}
+                verbose_message  "-------------- ${container_type} backend -----------------"
+                backup_to_${container_type}_container ${planner} ${backup_mode}
+        done
 
              
     elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
@@ -562,7 +527,81 @@ backup_to_pca_container() {
 }
 
 
+backup_to_sftp_container() {
 
+    local planner=${1^^}
+    local backup_mode=${2,,}
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    
+    #dynamic variables
+    local sftp_container_variable="${planner}_SFTP_CONTAINER"
+    local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
+    local max_full_variable="${planner}_BACKUP_MAX_FULL"
+    local backup_prefix_variable="${planner}_BACKUP_PREFIX"
+    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_target="sftp://${SFTP_USER}@${!sftp_container_variable}"
+    local timstamp=""
+
+
+    [ -z "${SFTP_PASSWORD}" ] && duplicity_target="sftp://${SFTP_USER}:${SFTP_PASSWORD}@${!sftp_container_variable}"
+    [ -z "${SFTP_IDENTITYFILE}" ] && duplicity_options="${duplicity_options} --ssh-options=\"-oIdentityFile=\'${SFTP_IDENTITYFILE}\'\""  
+    [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
+            
+    if [ "${planner}" == "DAILY" ] && [ ${DAILY_BACKUP_MAX_WEEK} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "DAILY_BACKUP_MAX_WEEK > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${DAILY_BACKUP_MAX_WEEK}*7)) days")
+    fi
+
+    if [ "${planner}" == "MONTHLY" ] && [ ${MONTHLY_BACKUP_MAX_MONTH} -gt 0 ]; then
+          ([ ${!max_full_with_incr_variable} -gt 0 ] ||  [ ${!max_full_variable} -gt 0 ]) && exit_fatal_message "MONTHLY_BACKUP_MAX_MONTH > 0, but ${max_full_with_incr_variable} or ${max_full_variable} are not 0"
+          timstamp=$(date  --iso-8601=seconds --date "now -$((${MONTHLY_BACKUP_MAX_MONTH}*31)) days")
+    fi
+
+    if [ ! -z ${!sftp_container_variable+x} ] ; then
+    
+       #list of excludes 
+       echo "exclude paths : ${EXCLUDE_PATHS}"
+       local exclude_from_file=$(mktemp)
+       >$exclude_from_file
+       local f
+       for f in ${EXCLUDE_PATHS}; do
+            echo $f >> $exclude_from_file
+       done
+       
+        
+        verbose_message "${planner} ${backup_mode} backup ${DATA_FOLDER} to ${duplicity_target}"
+        duplicity ${backup_mode} ${duplicity_options} --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
+
+        if [ $? -eq 0 ]; then
+            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+
+            if [ ! -z "${timstamp}" ]; then
+                verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
+                on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+            fi
+
+            if [ ${!max_full_with_incr_variable} -gt 0 ]; then
+                verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
+                on_error_fatal_message "during prune older incremental backup"
+            fi
+
+            if [ ${!max_full_variable} -gt 0 ]; then
+                verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
+                duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
+                on_error_fatal_message "during prune older full backup"
+            fi
+
+        else
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+        fi
+        
+        rm ${exclude_from_file}
+
+    fi
+}
 
 
 delete_older_backup() {

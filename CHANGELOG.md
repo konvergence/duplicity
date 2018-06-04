@@ -2,7 +2,24 @@
 All notable changes to this project will be documented in this file.
 
 
-# latest,  0.8.0, 0.8.0.4 : 2018-04-03
+
+# latest,  0.7.17, 0.7.17.5 : 2018-06-04
+
+### Removed : 
+   - remove PCA backend - not usable
+
+### Updated 
+    Use last duplicity release
+    
+### Added 
+    Add sftp backend : 
+    enabled with DAILY_SFTP_CONTAINER and MONTHLY_SFTP_CONTAINER : in form of other.host/some_dir
+
+        need SFTP_USER  with SFTP_PASSWORD or SFTP_IDENTITYFILE
+            if SFTP_PASSWORD is defined, then generate the following backend  sftp://${SFTP_USER}:${SFTP_PASSWORD}@${DAILY_SFTP_CONTAINER}
+            if SFTP_SSHKEY is defined, then generate the following backend  sftp://${SFTP_USER}@${DAILY_SFTP_CONTAINER} and --ssh-options="-oIdentityFile=${SFTP_IDENTITYFILE}"
+
+# 0.8.0, 0.8.0.4 : 2018-04-03
 
 ### Added
      Use prerelease 0.8.0 to allox PCA backend : see see https://docs.ovh.com/gb/en/storage/pca/duplicity/
