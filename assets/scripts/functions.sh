@@ -200,6 +200,9 @@ _EOF_
 
 jobber_create_closing_job() {
 
+# create job only if a container for CLOSING is defined
+if env | cut -d= -f1 | grep CLOSING | grep CONTAINER; then
+
    # define job "cosing"
     export CLOSING_COMMAND="entrypoint.sh --closing-backup"
     [ "${JOB_SHOW_OUTPUT}" = 'true' ] && export CLOSING_COMMAND="entrypoint.sh --closing-backup > /proc/1/fd/1 2>&1"
@@ -218,6 +221,7 @@ jobber_create_closing_job() {
   notifyOnFailure: ${JOB_NOTIFY_FAIL}
 _EOF_
   
+fi 
 
 }
 
