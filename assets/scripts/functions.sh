@@ -22,7 +22,6 @@ echo_green() {
 
 
 
-
 date2stamp () {
     date --utc --date "$1" +%s
 }
@@ -45,6 +44,7 @@ dateDiff (){
     if ((diffSec < 0)); then abs=-1; else abs=1; fi
     echo $((diffSec/sec*abs))
 }
+
 
 on_error_exit_fatal_message() {
     local exit_code=$?
@@ -100,6 +100,7 @@ success_message() {
 }
 
 
+
 #monitor() {
 #
 #    ##tail -F -n 0 $1 | while read line; do echo -e "$2: $line"; done
@@ -144,40 +145,37 @@ _EOF_
 
 jobber_start() {
 
-
-   [ "${JOB_SHOW_OUTPUT}" = 'true' ] && [ ! -p ${FIFO_OUTPUT} ] && mkfifo ${FIFO_OUTPUT} && trap "rm -f ${FIFO_OUTPUT}" EXIT
-   
-    if [ "${JOB_SHOW_OUTPUT}" = 'true' ]; then
-          monitor ${FIFO_OUTPUT} "job-${JOB_NAME}" &  /usr/local/sbin/jobberd
-    else
-           /usr/local/sbin/jobberd
-    fi
+    /usr/local/sbin/jobberd > /dev/null 2>&1
 
 }
 
-jobber_create_job() {
-
-    ([ "${JOB_NOTIFY_ERR}" = 'true' ] || [ "${JOB_NOTIFY_FAIL}" = 'true' ]) &&  export JOB_SHOW_OUTPUT=false
+jobber_create_jobs() {
 
     # prepare msmtp config
     [ "${JOB_NOTIFY_CMD}" = "msmtp_notify.sh" ] &&  envsubst < /usr/share/msmtprc/msmtprc.dist > /root/.msmtprc
 
-    # make fifo is show ouput
-    [ "${JOB_SHOW_OUTPUT}" = 'true' ] && export FIFO_OUTPUT=/tmp/jobber.output
-    
+    # init jobber configfile
+    configfile="/root/.jobber"
+    >${configfile}
+
+     jobber_create_backup_job
+	 jobber_create_closing_job
+
+    # because jobber don't take env variable
+    jobber_pipe_variables
+}
+
+
+jobber_create_backup_job() {
+   
+   # define job "backup"
     export JOB_COMMAND="entrypoint.sh --backup"
-    [ "${JOB_SHOW_OUTPUT}" = 'true' ] && export JOB_COMMAND="entrypoint.sh --backup 2>&1 | tee ${FIFO_OUTPUT}"
+    [ "${JOB_SHOW_OUTPUT}" = 'true' ] && export JOB_COMMAND="entrypoint.sh --backup > /proc/1/fd/1 2>&1"
     
     export JOB_TIME="${DAILY_JOB_HOUR} * * *"
 
- 
     
-   # because jobber don't take env variable
-   jobber_pipe_variables
 
-  configfile="/root/.jobber"
-  
-  >${configfile}
 
 if [ -n "${JOB_NOTIFY_CMD}" ]; then
     cat >> ${configfile} <<_EOF_
@@ -198,6 +196,33 @@ _EOF_
   
 
 }
+
+
+jobber_create_closing_job() {
+
+   # define job "cosing"
+    export CLOSING_COMMAND="entrypoint.sh --closing-backup"
+    [ "${JOB_SHOW_OUTPUT}" = 'true' ] && export CLOSING_COMMAND="entrypoint.sh --closing-backup > /proc/1/fd/1 2>&1"
+    
+    export CLOSING_TIME="${CLOSING_JOB_HOUR} * * *"
+	
+	echo "0">  ${CLOSING_STATE}
+
+
+  cat >> ${configfile} <<_EOF_
+- name: ${CLOSING_NAME}
+  cmd: ${CLOSING_COMMAND}
+  time: '${CLOSING_TIME}'
+  onError: ${JOB_ON_ERROR}
+  notifyOnError: ${JOB_NOTIFY_ERR}
+  notifyOnFailure: ${JOB_NOTIFY_FAIL}
+_EOF_
+  
+
+}
+
+
+
 
 check_backend() {
     local planner=${1,,}
@@ -234,6 +259,81 @@ get_default_backend() {
 }
 
 
+
+
+
+
+make_closing_backup() {
+
+    #convert into lowercase
+    local planner=closing
+    local container_type=${1,,}
+    local backup_mode=${2,,}
+	
+	local container_variable
+
+    [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
+	
+    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"	
+
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+	
+    # force full mode if empty
+    [ -z "${backup_mode}" ] && backup_mode=full
+
+
+    # CLOSING_FLAGFILE : 0 - Nothing, 1 - Request, 2 pending	
+	local closing_state=$(cat ${CLOSING_STATE})
+	[[ $closing_state -eq 2 ]] && verbose_message "a closing backup is pending" && return 0
+
+    if [[ $closing_state -eq 1 ]]; then 
+	    verbose_message "closing backup is requested"
+		
+        # switch state to pending
+        echo "2" > ${CLOSING_STATE}
+
+        # if DB_TYPE  then make dump of db in ${DATA_FOLDER}
+        if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
+            verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
+    		if ! ${DB_TYPE}_backup.sh; then
+                echo "0" > ${CLOSING_STATE}
+    			exit_fatal_message "backup error ${DB_TYPE}"
+    	   fi
+    
+        fi 
+    	
+    	if [ -z "${container_type}" ]; then
+    
+                # check that a ${planner^^}_XXXX_CONTAINER  is defined
+                if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
+                    echo "0" > ${CLOSING_STATE} 
+    				exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
+                fi
+               
+                for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
+                       container_type=$(echo $container_variable | cut -d_ -f2)
+                       container_type=${container_type,,}
+               
+                       verbose_message  "-------------- ${container_type} backend -----------------"
+                       backup_to_${container_type}_container ${planner} ${backup_mode}
+               done
+    		   echo "0" > ${CLOSING_STATE}
+    
+        elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
+                #### push backupset  to  container if for planner defined
+                 backup_to_${container_type}_container ${planner} ${backup_mode}
+    			 echo "0" > ${CLOSING_STATE}
+        else
+             echo "0" > ${CLOSING_STATE} 
+    		 exit_fatal_message "error in make_closing_backup"
+        fi
+    else
+        verbose_message "closing nothing to do"	
+    fi		
+}
+
+
+
 make_backup() {
 
     #convert into lowercase
@@ -246,6 +346,14 @@ make_backup() {
     local day_of_month=$(date +%d)
 
     local container_variable
+	
+
+    # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
+	local closing_state=$(cat ${CLOSING_STATE})
+	[[ $closing_state -eq 1 ]] && exit_fatal_message "a closing backup is requested"	
+	[[ $closing_state -eq 2 ]] && exit_fatal_message "a closing backup is pending"
+
+
     
     [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
     
@@ -258,7 +366,10 @@ make_backup() {
 
 # force full mode if day_of_week day_of_month or planner is monthly
     [ -z "${backup_mode}" ] && ( [ "${planner}" == "monthly" ] || [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ] || [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] ) && backup_mode=full
-    
+	
+	
+	
+	    
 #if DB_TYPE  then make dump of db in ${DATA_FOLDER}
    if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
@@ -285,7 +396,9 @@ make_backup() {
                     backup_to_${container_type}_container daily ${backup_mode}
                 fi
                 # try monthly push if day of month is good
-                [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] && backup_to_${container_type}_container monthly full
+                if [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ]; then 
+					backup_to_${container_type}_container monthly full
+				fi
         done
 
 
@@ -312,8 +425,6 @@ make_backup() {
     else
          exit_fatal_message "error in make_backup"
     fi
-    
-
         
 }
 
@@ -324,7 +435,7 @@ backup_to_filesystem_container() {
 
     local planner=${1^^}
     local backup_mode=${2,,}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
     
     #dynamic variables
@@ -366,19 +477,19 @@ backup_to_filesystem_container() {
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
 
-            if [ ! -z "${timstamp}" ]; then
+            if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
                 on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
             fi
 
-            if [ ${!max_full_with_incr_variable} -gt 0 ]; then
+            if [ ${!max_full_with_incr_variable} -gt 0 ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            if [ ${!max_full_variable} -gt 0 ]; then
+            if [ ${!max_full_variable} -gt 0 ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older full backup"
@@ -400,7 +511,7 @@ backup_to_swift_container() {
 
     local planner=${1^^}
     local backup_mode=${2,,}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
     
     #dynamic variables
@@ -450,19 +561,19 @@ backup_to_swift_container() {
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
 
-            if [ ! -z "${timstamp}" ]; then
+            if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
                 on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
             fi
 
-            if [ ${!max_full_with_incr_variable} -gt 0 ]; then
+            if  [ ${planner} != "CLOSING" ] && [ ${!max_full_with_incr_variable} -gt 0 ] ; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            if [ ${!max_full_variable} -gt 0 ]; then
+            if  [ ${planner} != "CLOSING" ] && [ ${!max_full_variable} -gt 0 ] ; then
                     verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                     duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
                     on_error_fatal_message "during prune older full backup"
@@ -470,9 +581,7 @@ backup_to_swift_container() {
         else
             fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
         fi
-        
         rm ${exclude_from_file}
-
     fi
 }
 
@@ -482,7 +591,7 @@ backup_to_pca_container() {
 
     local planner=${1^^}
     local backup_mode=${2,,}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
     
     #dynamic variables
@@ -532,19 +641,19 @@ backup_to_pca_container() {
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
 
-            if [ ! -z "${timstamp}" ]; then
+            if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-older-than  ${timstamp} ${duplicity_options} --force ${duplicity_target}
                 on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
             fi
 
-            if [ ${!max_full_with_incr_variable} -gt 0 ]; then
+            if [ ${planner} != "CLOSING" ] && [ ${!max_full_with_incr_variable} -gt 0 ] ; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            if [ ${!max_full_variable} -gt 0 ]; then
+            if [ ${planner} != "CLOSING" ] && [ ${!max_full_variable} -gt 0 ] ; then
                     verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${duplicity_target}"
                     duplicity remove-all-but-n-full ${!max_full_variable} --force ${duplicity_options} ${duplicity_target}
                     on_error_fatal_message "during prune older full backup"
@@ -563,7 +672,7 @@ backup_to_sftp_container() {
 
     local planner=${1^^}
     local backup_mode=${2,,}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
     
     #dynamic variables
@@ -609,19 +718,19 @@ backup_to_sftp_container() {
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
 
-            if [ ! -z "${timstamp}" ]; then
+            if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
                 duplicity remove-older-than  ${timstamp} ${duplicity_options} --ssh-options="${ssh_options}" --force ${duplicity_target}
                 on_error_fatal_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
             fi
 
-            if [ ${!max_full_with_incr_variable} -gt 0 ]; then
+            if [ ${planner} != "CLOSING" ] && [ ${!max_full_with_incr_variable} -gt 0 ]; then
                 verbose_message "keep ${planner} incremental backups  only on the lastest ${!max_full_with_incr_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
                 duplicity remove-all-inc-of-but-n-full ${!max_full_with_incr_variable} --ssh-options="${ssh_options}" --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older incremental backup"
             fi
 
-            if [ ${!max_full_variable} -gt 0 ]; then
+            if [ ${planner} != "CLOSING" ] && [ ${!max_full_variable} -gt 0 ]; then
                 verbose_message "keep ${planner} full backups  only on the lastest ${!max_full_variable} full backup sets  with prefix ${!backup_prefix_variable} on ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
                 duplicity remove-all-but-n-full ${!max_full_variable} --ssh-options="${ssh_options}" --force ${duplicity_options} ${duplicity_target}
                 on_error_fatal_message "during prune older full backup"
@@ -630,9 +739,7 @@ backup_to_sftp_container() {
         else
             fatal_message "during ${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
         fi
-        
         rm ${exclude_from_file}
-
     fi
 }
 
@@ -663,7 +770,7 @@ delete_older_backup_from_filesystem_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     
     #dynamic variables
@@ -682,7 +789,7 @@ delete_older_backup_from_swift_container() {
     local timstamp=$1
     
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
@@ -706,7 +813,7 @@ delete_older_backup_from_pca_container() {
     local timstamp=$1
     
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
@@ -731,7 +838,7 @@ delete_older_backup_from_sftp_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     
     #dynamic variables
@@ -766,7 +873,7 @@ restore_backup() {
    [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
-    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && [ ${planner} != "closing" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
    
@@ -778,7 +885,7 @@ restore_backup_from_filesystem_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     [ ! -z "${PATH_TO_RESTORE}" ] && [ "${CLEAN_BEFORE_RESTORE}" = 'yes' ] && exit_fatal_message "can not restore path with  CLEAN_BEFORE_RESTORE=yes option"
 
@@ -827,7 +934,7 @@ restore_backup_from_swift_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     [ ! -z "${PATH_TO_RESTORE}" ] && [ "${CLEAN_BEFORE_RESTORE}" = 'yes' ] && exit_fatal_message "can not restore path with  CLEAN_BEFORE_RESTORE=yes option"
     
@@ -880,7 +987,7 @@ restore_backup_from_pca_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     [ ! -z "${PATH_TO_RESTORE}" ] && [ "${CLEAN_BEFORE_RESTORE}" = 'yes' ] && exit_fatal_message "can not restore path with  CLEAN_BEFORE_RESTORE=yes option"
     
@@ -933,7 +1040,7 @@ restore_backup_from_sftp_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     [ ! -z "${PATH_TO_RESTORE}" ] && [ "${CLEAN_BEFORE_RESTORE}" = 'yes' ] && exit_fatal_message "can not restore path with  CLEAN_BEFORE_RESTORE=yes option"
 
@@ -997,7 +1104,7 @@ content_backup() {
    [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
-    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && [ ${planner} != "closing" ]  && exit_fatal_message "unknown planner mode"
     [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
    
@@ -1009,7 +1116,7 @@ content_backup_from_filesystem_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
 
     #dynamic variables
@@ -1031,7 +1138,7 @@ content_backup_from_swift_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
 
     #dynamic variables
@@ -1059,7 +1166,7 @@ content_backup_from_pca_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
 
     #dynamic variables
@@ -1087,7 +1194,7 @@ content_backup_from_sftp_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
 
     #dynamic variables
@@ -1117,7 +1224,7 @@ list_backupset() {
     [ -z "${planner}" ] && planner="daily"
     [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
     
-     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && [ ${planner} != "closing" ] && exit_fatal_message "unknown planner mode"
 
      [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
@@ -1130,7 +1237,7 @@ list_backupset() {
 list_backupset_from_filesystem_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
@@ -1147,7 +1254,7 @@ list_backupset_from_filesystem_container() {
 list_backupset_from_swift_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
@@ -1170,7 +1277,7 @@ list_backupset_from_swift_container() {
 list_backupset_from_pca_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
@@ -1193,7 +1300,7 @@ list_backupset_from_pca_container() {
 list_backupset_from_sftp_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
@@ -1221,7 +1328,7 @@ cleanup_backupset() {
     [ -z "${planner}" ] && planner="daily"
     [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
     
-     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+     [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && [ ${planner} != "closing" ] && exit_fatal_message "unknown planner mode"
      [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
     
@@ -1233,7 +1340,7 @@ cleanup_backupset() {
 cleanup_backupset_from_filesystem_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
@@ -1250,7 +1357,7 @@ cleanup_backupset_from_filesystem_container() {
 cleanup_backupset_from_swift_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
@@ -1273,7 +1380,7 @@ cleanup_backupset_from_swift_container() {
 cleanup_backupset_from_pca_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
@@ -1296,7 +1403,7 @@ cleanup_backupset_from_pca_container() {
 cleanup_backupset_from_sftp_container() {
     #convert in uppercase
     local planner=${1^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
@@ -1329,7 +1436,7 @@ compare_backup() {
    [ -z "${container_type}" ] && container_type=$(get_default_backend $planner)
    
    
-    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && [ ${planner} != "closing" ] && exit_fatal_message "unknown planner mode"
      [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
    
    compare_backup_from_${container_type}_container ${timstamp} ${planner}
@@ -1340,7 +1447,7 @@ compare_backup_from_filesystem_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
 
 
@@ -1375,7 +1482,7 @@ compare_backup_from_swift_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     
     #dynamic variables
@@ -1415,7 +1522,7 @@ compare_backup_from_pca_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
     
     #dynamic variables
@@ -1455,7 +1562,7 @@ compare_backup_from_sftp_container() {
     
     #convert into uppercase
     local planner=${2^^}
-    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && exit_fatal_message "unknown planner mode"
+    [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
 
 
 

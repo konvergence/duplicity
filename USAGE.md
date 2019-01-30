@@ -16,24 +16,24 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
        "--help" : display the help
        "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift/sftp if defined
 
-       "--backup  [[daily|monthly] [filesystem|swift|sftp] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
+       "--backup  [[daily|monthly|closing] [filesystem|swift|sftp] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
 
-       "--delete-older <time>" [[daily|monthly]  [filesystem|swift|sftp]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore <time>" [[daily|monthly]  [filesystem|swift|sftp]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-latest" [[daily|monthly]  [filesystem|swift|sftp]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift|sftp]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--delete-older <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|swift|sftp]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--content  <time>" [[daily|monthly]  [filesystem|swift|sftp]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
-       "--content-latest" [[daily|monthly]  [filesystem|swift|sftp]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content  <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
    
    
-       "--list" [[daily|monthly]  [filesystem|swift|sftp]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
+       "--list" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--cleanup" [[daily|monthly]  [filesystem|swift|sftp]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
+       "--cleanup" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--compare <time>" [[daily|monthly]  [filesystem|swift|sftp]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--compare-latest" [[daily|monthly]  [filesystem|swift|sftp]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--comapre-path xxxxx <time>" [[daily|monthly]]  [filesystem|swift|sftp]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--comapre-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|swift|sftp]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
 
 
 ## Default general options
@@ -144,6 +144,14 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
       MONTHLY_BACKUP_MAX_FULL=0: if > 0 , max full to keep
       MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
+## closing backup management 
+
+###   working
+	CLOSING_STATE=/tmp/closing-backup.state # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
+	if CLOSING_FLAGFILE contain  1 , it means you request a closing FULL backup
+	the file is tested every CLOSING_JOB_HOUR="0,15,30,45 * *"
+	during the closing backup, CLOSING_FLAGFILE is changed to value 2
+	and no other backup can be done until the end
 
 
 

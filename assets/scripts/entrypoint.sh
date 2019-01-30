@@ -9,19 +9,14 @@
 source /bin/env-defaults.sh
 source /bin/functions.sh
 
-
-# manage timezone
-if [ ! -z "$TZ" ]; then
-   echo "$TZ" > /etc/timezone
-   rm /etc/localtime
-   dpkg-reconfigure -f noninteractive tzdata
-fi
-
-
-
 if [ "$1" = '--backup' ]; then
     shift 1
-	make_backup "$@"
+	make_backup "$@" 
+
+elif [ "$1" = '--closing-backup' ]; then
+    shift 1
+	make_closing_backup "$@"  > /proc/1/fd/1 2>&1
+
 
 elif [ "$1" = '--delete-older' ]; then
     shift 1
@@ -82,16 +77,13 @@ elif [ "$1" = '--jobber-backup' ]; then
 
 	
 	# create jobber job
-   jobber_create_job
+   jobber_create_jobs
    jobber_start
 	
- 
-
 		 
 elif [ "$1" = '--help' ]; then
     envsubst < /USAGE.md
 		 
 else
     envsubst < /USAGE.md
-   ##exec "$@"
 fi

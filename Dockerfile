@@ -34,7 +34,7 @@ RUN apt-get update \
    && apt-get install -y software-properties-common python-software-properties \
    && add-apt-repository -y ppa:duplicity-team/ppa \
    && apt-get update \
-   && apt-get install -y  duplicity=0.7.17-0ubuntu0ppa1353~ubuntu16.04.1 \
+   && apt-get install -y  duplicity=0.7.18.2-0ubuntu0ppa1367~ubuntu16.04.1 \
 && echo "#### install sftp/scp paramiko module" \
    && apt-get install -y python-paramiko python-gobject-2 \
 && echo "#### install sftp/scp pexpect module" \
@@ -65,7 +65,7 @@ RUN apt-get update \
 
 
 # Add Tini
-ARG TINI_VERSION="v0.16.1"
+ARG TINI_VERSION="v0.18.0"
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
@@ -129,6 +129,6 @@ VOLUME [ "${DATA_FOLDER}" ]
 
 
 # Entrypoint and CMD
-ENTRYPOINT ["/tini", "--", "bash", "/bin/entrypoint.sh" ]
+ENTRYPOINT ["/tini", "--", "bash", "/bin/entrypoint-init.sh" ]
 CMD ["--help"]
 

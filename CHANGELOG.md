@@ -3,7 +3,22 @@ All notable changes to this project will be documented in this file.
 
 
 
-# latest,  0.7.17, 0.7.17.5 : 2018-06-04
+# latest , 0.7.18,  0.7.18.2, 0.7.18.2.1 : 2019-01-29
+
+### Updated 
+    Use last duplicity release
+	JOB_SHOW_OUTPUT use /proc/1/fd/1 instead of redirect all output in pipe
+
+## Added 
+    CLOSING_xxxxx variables allow to detecte flag file to make a CLOSING backup
+	CLOSING_[filesystem|swift|sftp]_CONTAINER allow to give container backyp type [filesystem|swift|sftp] for closing
+	CLOSING_JOB_HOUR="0,15,30,45 * *" : in jobber cron time format SS MM HH
+	CLOSING_STATE=/tmp/closing-backup.state # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
+	
+
+
+
+# 0.7.17, 0.7.17.5 : 2018-06-04
 
 ### Removed : 
    - remove PCA backend - not usable
