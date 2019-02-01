@@ -332,7 +332,7 @@ make_closing_backup() {
     		 exit_fatal_message "error in make_closing_backup"
         fi
     else
-        verbose_message "closing nothing to do"	
+        #verbose_message "closing nothing to do"	
     fi		
 }
 
