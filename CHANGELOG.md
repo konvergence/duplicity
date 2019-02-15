@@ -3,7 +3,13 @@ All notable changes to this project will be documented in this file.
 
 
 
-# latest , 0.7.18,  0.7.18.2, 0.7.18.2.1 : 2019-01-29
+# latest , 0.7.18,  0.7.18.2, 0.7.18.2.4 : 2019-02-15
+
+## Updated
+   correct CLOSING_NAME in env-default.sh
+   correct CLOSING_JOB_HOUR="0 * *"   in env-default.sh
+
+# 0.7.18,  0.7.18.2, 0.7.18.2.1 : 2019-01-29
 
 ### Updated 
     Use last duplicity release
