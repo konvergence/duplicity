@@ -85,8 +85,8 @@ export SSH_OPTIONS=${SSH_OPTIONS:--oStrictHostKeyChecking=no}
 
 
 # initialize CLOSING backup
-export CLOSING_NAME=${JOB_NAME:-closing}
-export CLOSING_JOB_HOUR=${CLOSING_JOB_HOUR:-0,15,30,45 * *}
+export CLOSING_NAME=${CLOSING_NAME:-closing}
+export CLOSING_JOB_HOUR=${CLOSING_JOB_HOUR:-0 * *}
 export CLOSING_STATE=${CLOSING_STATE:-/tmp/closing-backup.state} 
 export CLOSING_BACKUP_PREFIX=${CLOSING_BACKUP_PREFIX:-closing}
 export CLOSING_OS_REGION_NAME=${CLOSING_OS_REGION_NAME:-SBG3}

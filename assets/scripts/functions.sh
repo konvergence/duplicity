@@ -331,7 +331,7 @@ make_closing_backup() {
              echo "0" > ${CLOSING_STATE} 
     		 exit_fatal_message "error in make_closing_backup"
         fi
-    else
+   # else
         #verbose_message "closing nothing to do"	
     fi		
 }
