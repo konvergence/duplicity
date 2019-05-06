@@ -44,6 +44,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
     TZ=Europe/Paris : timezone for logs and jobber time
     BACKUP_VOLUME_SIZE=256 : max size in MB of each volume. A backup is composed of severals volumes
     PASSPHRASE=xxxxxx                : mandatory passphrase GPG symetric
+	FULL_MODE=false                  : force full mode
 
 ##  Database backup management
      to allow backup/restore you must define DB_TYPE variable and other DB_XXXX variable are defined (DB_HOST,DB_PORT, DB_SYSTEM_USER, DB_SYSTEM_PASSWORD, DB_SYSTEM_REPO)
@@ -57,6 +58,8 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
      - DB_SYSTEM_REPO=postgres
      - DB_DUMP_FILE=dumpall.out
      - DB_INSTANCE=ORCLCDB : for oracle only
+	 - DB_COMPRESS_ENABLE=true
+	 - DB_COMPRESS_LEVEL=4
 
 ##  OpenStack authentication for  SWIFT or SFTP container management
     DAILY_OS_REGION_NAME=GRA3
@@ -99,7 +102,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
    backup is trigger from ${DATA_FOLDER} at ${DAILY_JOB_HOUR} only if  ${DAILY_FILESYSTEM_CONTAINER} or ${DAILY_SWIFT_CONTAINER} are defined
    using OS_XXXX variables (OS_REGION_NAME, OS_AUTH_URL, OS_TENANT_ID, OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD) for all  XXXX_SWIFT_CONTAINER
 
-###   retention
+### retention
      if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_[FILESYSTEM|SWIFT|SFTP]_CONTAINER}
 
 

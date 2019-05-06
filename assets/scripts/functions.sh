@@ -371,6 +371,8 @@ make_backup() {
 # force full mode if day_of_week day_of_month or planner is monthly
     [ -z "${backup_mode}" ] && ( [ "${planner}" == "monthly" ] || [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ] || [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] ) && backup_mode=full
 	
+	[ "${FULL_MODE}" == "true" ] && backup_mode=full
+	
 	
 	
 	    

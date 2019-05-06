@@ -26,7 +26,12 @@ fi
 
 
 # restore all databases
-mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_SYSTEM_USER}" -p"${DB_SYSTEM_PASSWORD}" < ${DATA_FOLDER}/dumpall.out
+if [ -f ${DATA_FOLDER}/dumpall.out.gz ]; then
+    cat ${DATA_FOLDER}/dumpall.out.gz | gunzip | mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_SYSTEM_USER}" -p"${DB_SYSTEM_PASSWORD}"
+else
+    mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_SYSTEM_USER}" -p"${DB_SYSTEM_PASSWORD}" < ${DATA_FOLDER}/dumpall.out
+fi
+
 if [ $? -ne 0 ]; then
   echo "ERROR: restore ${DATA_FOLDER}/dumpall.out" 1>&2
   exit -1

@@ -26,7 +26,16 @@ fi
 
 
 # dump all databases
-mysqldump --all-databases --host="${DB_HOST}" --port="${DB_PORT}" -u${DB_SYSTEM_USER} -p"${DB_SYSTEM_PASSWORD}" > ${DATA_FOLDER}/dumpall.out
+
+rm -f ${DATA_FOLDER}/dumpall.out*
+
+if [ "${DB_COMPRESS_ENABLE}" == "true" ]; then
+    mysqldump --all-databases --host="${DB_HOST}" --port="${DB_PORT}" -u${DB_SYSTEM_USER} -p"${DB_SYSTEM_PASSWORD}" | gzip -${DB_COMPRESS_LEVEL}  > ${DATA_FOLDER}/dumpall.out.gz
+
+else
+    mysqldump --all-databases --host="${DB_HOST}" --port="${DB_PORT}" -u${DB_SYSTEM_USER} -p"${DB_SYSTEM_PASSWORD}"  > ${DATA_FOLDER}/dumpall.out
+fi
+
 if [ $? -ne 0 ]; then
   echo "ERROR: backup ${DATA_FOLDER}/dumpall.out" 1>&2
   exit -1

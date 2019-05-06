@@ -1,5 +1,6 @@
 #!/bin/bash
 # wait-for-postgres.sh
+# https://serverfault.com/questions/857339/backing-up-restoring-postgres-using-pg-dumpall-split-gzip-set-on-error
 
 [ ! -z $DEBUG  ] && set -x
 
@@ -31,8 +32,15 @@ fi
 
 # dump all databases
 
-pg_dumpall --clean > ${DATA_FOLDER}/dumpall.out
+rm -f ${DATA_FOLDER}/dumpall.out*
+
+if [ "${DB_COMPRESS_ENABLE}" == "true" ]; then
+ pg_dumpall --clean | gzip -${DB_COMPRESS_LEVEL} > ${DATA_FOLDER}/dumpall.out.gz
+else
+    pg_dumpall --clean > ${DATA_FOLDER}/dumpall.out
+fi
+
 if [ $? -ne 0 ]; then
-  echo "ERROR: backup ${DATA_FOLDER}/dumpall.out" 1>&2
-  exit -1
+    echo "ERROR: backup ${DATA_FOLDER}/dumpall.out" 1>&2
+    exit -1
 fi

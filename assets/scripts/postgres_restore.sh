@@ -1,5 +1,6 @@
 #!/bin/bash
 # wait-for-postgres.sh
+# https://serverfault.com/questions/857339/backing-up-restoring-postgres-using-pg-dumpall-split-gzip-set-on-error
 
 [ ! -z $DEBUG  ] && set -x
 
@@ -28,9 +29,12 @@ if  [  $COUNTER -ge  ${DB_MAX_WAIT} ]; then
 fi
 
 
+if [ -f ${DATA_FOLDER}/dumpall.out.gz ]; then
+    cat ${DATA_FOLDER}/dumpall.out.gz | gunzip | psql
+else
+     psql < ${DATA_FOLDER}/dumpall.out
+fi
 
-# restore all databases
-psql < ${DATA_FOLDER}/dumpall.out
 if [ $? -ne 0 ]; then
   echo "ERROR: restore ${DATA_FOLDER}/dumpall.out" 1>&2
   exit -1
