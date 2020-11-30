@@ -11,7 +11,7 @@ popd
 
 # Release Build of the Docker Image
 # Final Docker Image Name
-export IMAGE_BUILD="5"
+export IMAGE_BUILD="6"
 export DOCKER_REPO=konvergence/duplicity
 
 
@@ -24,7 +24,7 @@ export DOCKER_REPO=konvergence/duplicity
 # ask release is needed
 #----------------------------------------------------------------------------------------------------------
 #if [ -z "${RELEASE_FOLDER}" ]; then
-#	echo available releases folder : 
+#	echo available releases folder :
 #	ls ${ALL_RELEASES_FOLDER}
 #	read -p "release folder:" RELEASE_FOLDER
 #fi
@@ -32,6 +32,3 @@ export DOCKER_REPO=konvergence/duplicity
 
 #${ALL_RELEASES_FOLDER}/${RELEASE_FOLDER}/buildDockerImage.sh
 ./buildDockerImage.sh
-
-
-

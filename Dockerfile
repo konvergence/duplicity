@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
 # test mandatory args
 ARG RELEASE_MAJOR
@@ -12,60 +12,54 @@ RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" 
 LABEL maintainer="konvergence.com" \
       website="https://www.konvergence.com" \
       description="volume backup with duplicity using openstack swift, sftp or filesystem volume" \
-      release="${RELEASE}" 
- 
+      release="${RELEASE}"
+
 ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
-ARG JOBBER_VERSION="v1.2"
-ARG DUPLICITY_RELEASE=${RELEASE}
+ARG JOBBER_VERSION="v1.4.4"
+ARG DUPLICITY_RELEASE=0.8.12
 
 RUN apt-get update \
    && apt-get install -y --no-install-recommends apt-utils \
    && apt-get install -y  tzdata \
                           gettext-base \
-                          postgresql-client-9.5 \
-                          mysql-client-5.7 \
-                          python-swiftclient \
+                          postgresql-client-12 \
+                          mysql-client-8.0 \
+                          python3-swiftclient \
                           msmtp \
                           git curl  golang-go \
                           jq \
-&& echo "#### intall duplicity ppa " \
-   && apt-get install -y software-properties-common python-software-properties \
-   && add-apt-repository -y ppa:duplicity-team/ppa \
-   && apt-get update \
-   && apt-get install -y  duplicity=0.7.18.2-0ubuntu0ppa1367~ubuntu16.04.1 \
+&& echo "#### intall duplicity" \
+   && apt-get install -y  python-pycryptopp python3-boto python3-dev \
+   && apt-get install -y  duplicity \
 && echo "#### install sftp/scp paramiko module" \
-   && apt-get install -y python-paramiko python-gobject-2 \
+   && apt-get install -y python3-paramiko python-gobject-2 \
 && echo "#### install sftp/scp pexpect module" \
    && apt-get install -y openssh-client python-pexpect \
-&& echo "#### create Go home" \
+&&  echo "#### install jobber" \
     && mkdir -p /opt/go \
-    && chmod 775 /opt/go \
-    && chown root:staff /opt/go \
-&& echo "#### install jobber" \
+    && apt-get install -y build-essential \
     && mkdir -p /opt/go/src/github.com/dshearer/jobber/ \
     && curl -sSL "https://github.com/dshearer/jobber/archive/${JOBBER_VERSION}.tar.gz" | tar -xz -C /opt/go/src/github.com/dshearer/jobber/ --strip-components=1 \
     && make --directory=/opt/go/src/github.com/dshearer/jobber \
-    && useradd --home / -M --system --shell /sbin/nologin jobber_client \
-    && cd /opt/go/bin/ \
-    && cp jobber /usr/local/bin/. \
-    && cp jobberd /usr/local/sbin/. \
-    && cd /usr/local/bin \
-    && chown jobber_client:root jobber \
-    && chmod 4775 jobber \
-    && cd /usr/local/sbin \
-    && chown root:root jobberd \
-    && chmod 0755 jobberd  \
- && echo "#### clean " \
+&& echo "#### prepare jobber deamon" \
+    && mkdir -p /opt/go/jobber \
+    && cp /opt/go/src/github.com/dshearer/jobber/bin/* /opt/go/jobber \
+    && cd /usr/local/bin/ \
+    && ln -f -s /opt/go/jobber/jobber jobber \
+    && mkdir -p /usr/local/lib/jobber \
+    && rm -rf /opt/go/src/ \
+&& echo "#### clean " \
      && apt-get clean \
      && rm -rf /var/lib/apt/lists/* \
      && rm -rf /tmp/*
 
+COPY assets/jobber/jobber.conf /etc/jobber.conf
 
 
 # Add Tini
-ARG TINI_VERSION="v0.18.0"
+ARG TINI_VERSION="v0.19.0"
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
@@ -99,7 +93,8 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     DB_COMPRESS_ENABLE=false \
     DB_COMPRESS_LEVEL=4 \
     FULL_MODE=false \
-    OS_AUTH_URL=https://auth.cloud.ovh.net/v2.0/ \
+    OS_AUTH_URL=https://auth.cloud.ovh.net/v3/ \
+    SWIFT_AUTHVERSION=3 \
     OS_TENANT_ID=yourTenantID \
     OS_TENANT_NAME=yourTenantName \
     OS_USERNAME=yourUserName \
@@ -109,11 +104,11 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     DAILY_BACKUP_FULL_DAY=0 \
     DAILY_BACKUP_MAX_WEEK=5 \
     DAILY_BACKUP_PREFIX=backup \
-    DAILY_OS_REGION_NAME=GRA3 \
+    DAILY_OS_REGION_NAME=GRA \
     MONTHLY_BACKUP_DAY=1 \
     MONTHLY_BACKUP_PREFIX=archive \
     MONTHLY_BACKUP_MAX_MONTH=12 \
-    MONTHLY_OS_REGION_NAME=SBG3 \
+    MONTHLY_OS_REGION_NAME=SBG \
     SFTP_MODULE=pexpect+sftp
 
 ##    PASSPHRASE=YourSuperPassPhrase \
@@ -134,4 +129,3 @@ VOLUME [ "${DATA_FOLDER}" ]
 # Entrypoint and CMD
 ENTRYPOINT ["/tini", "--", "bash", "/bin/entrypoint-init.sh" ]
 CMD ["--help"]
-
