@@ -18,7 +18,7 @@ ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
 ARG JOBBER_VERSION="v1.4.4"
-ARG DUPLICITY_RELEASE=0.8.12
+ARG DUPLICITY_RELEASE=0.8.18
 
 RUN apt-get update \
    && apt-get install -y --no-install-recommends apt-utils \
@@ -109,7 +109,10 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     MONTHLY_BACKUP_PREFIX=archive \
     MONTHLY_BACKUP_MAX_MONTH=12 \
     MONTHLY_OS_REGION_NAME=SBG \
-    SFTP_MODULE=pexpect+sftp
+    SFTP_MODULE=pexpect+sftp \
+    DB_SKIP_DROP=false \
+    DB_DATABASES=""
+
 
 ##    PASSPHRASE=YourSuperPassPhrase \
 ##    DAILY_BACKUP_MAX_FULL_WITH_INCR=0 \

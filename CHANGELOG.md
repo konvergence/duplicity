@@ -2,8 +2,23 @@
 All notable changes to this project will be documented in this file.
 
 
+# latest, 0.8.18, 0.8.18.7 : 2021-04-15
+* update duplicity to 0.8.18
+* add variable DB_SKIP_DROP=false . If true, to allow to not include drop instruction into backup before create objects
+* add variable DB_DATABASES="" . if not empty,  allow to give a list of databases names separate with space. if empty or not exists, dump all databases
 
-# latest , 0.7.18,  0.7.18.2, 0.7.18.2.4 : 2019-02-15
+
+
+
+#  0.8.12, 0.8.12.6 : : 2020-11-30
+* update base from ubuntu 20.4
+* update duplicity to 0.8.12
+* update to   postgresql-client-12, mysql-client-8.0
+* update jobber to v1.4.4
+* update tini to v0.19.0
+
+
+# 0.7.18,  0.7.18.2, 0.7.18.2.4 : 2019-02-15
 
 ## Updated
    correct CLOSING_NAME in env-default.sh
@@ -11,29 +26,29 @@ All notable changes to this project will be documented in this file.
 
 # 0.7.18,  0.7.18.2, 0.7.18.2.1 : 2019-01-29
 
-### Updated 
+### Updated
     Use last duplicity release
 	JOB_SHOW_OUTPUT use /proc/1/fd/1 instead of redirect all output in pipe
 
-## Added 
-    CLOSING_xxxxx variables allow to detecte flag file to make a CLOSING backup
+## Added
+  CLOSING_xxxxx variables allow to detecte flag file to make a CLOSING backup
 	CLOSING_[filesystem|swift|sftp]_CONTAINER allow to give container backyp type [filesystem|swift|sftp] for closing
 	CLOSING_JOB_HOUR="0,15,30,45 * *" : in jobber cron time format SS MM HH
 	CLOSING_STATE=/tmp/closing-backup.state # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
-	
+
 
 
 
 # 0.7.17, 0.7.17.5 : 2018-06-04
 
-### Removed : 
+### Removed :
    - remove PCA backend - not usable
 
-### Updated 
+### Updated
     Use last duplicity release
-    
-### Added 
-    Add sftp backend : 
+
+### Added
+    Add sftp backend :
     enabled with DAILY_SFTP_CONTAINER and MONTHLY_SFTP_CONTAINER : in form of other.host/some_dir
 
         need SFTP_USER  with SFTP_PASSWORD or SFTP_IDENTITYFILE
@@ -74,7 +89,7 @@ All notable changes to this project will be documented in this file.
    - database backup is done if ${DB_TYPE} is defined with other DB_XXXX variables into ${DATA_FOLDER}
    - filesystem backup if done on ${DATA_FOLDER}
    - Allow weekly and monthly backup with associated prefix into containers and TTL retention
-   
+
 ### available commands
        "--help" : display the help
        "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift if defined
@@ -88,8 +103,8 @@ All notable changes to this project will be documented in this file.
 
        "--content  <time>" [[daily|monthly]  [filesystem|swift]]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
        "--content-latest" [[daily|monthly]  [filesystem|swift]]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
-   
-   
+
+
        "--list" [[daily|monthly]  [filesystem|swift]]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
 
        "--cleanup" [[daily|monthly]  [filesystem|swift]]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
