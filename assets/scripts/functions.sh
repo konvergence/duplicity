@@ -270,87 +270,84 @@ get_default_backend() {
 
 make_closing_backup() {
 
-    #convert into lowercase
-    local planner=closing
-    local container_type=${1,,}
-    local backup_mode=${2,,}
+  #convert into lowercase
+  local planner=closing
+  local container_type=${1,,}
+  local backup_mode=${2,,}
 
 	local container_variable
 
-    [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
+  [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
 
-    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
+  [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
-    # force full mode if empty
-    [ -z "${backup_mode}" ] && backup_mode=full
+  # force full mode if empty
+  [ -z "${backup_mode}" ] && backup_mode=full
 
 
     # CLOSING_FLAGFILE : 0 - Nothing, 1 - Request, 2 pending
 	local closing_state=$(cat ${CLOSING_STATE})
 	[[ $closing_state -eq 2 ]] && verbose_message "a closing backup is pending" && return 0
 
-    if [[ $closing_state -eq 1 ]]; then
+  if [[ $closing_state -eq 1 ]]; then
 	    verbose_message "closing backup is requested"
 
-        # switch state to pending
-        echo "2" > ${CLOSING_STATE}
+      # switch state to pending
+      echo "2" > ${CLOSING_STATE}
 
 
-        if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
-            ${PRE_HOOK_BACKUP_SCRIPT}
-            on_error_exit_fatal_message "pre-hook-backup-script error"
-            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
-        fi
+      if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
+          verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
+          ${PRE_HOOK_BACKUP_SCRIPT}
+          on_error_exit_fatal_message "pre-hook-backup-script error"
+          verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
+      fi
 
 
-        # if DB_TYPE  then make dump of db in ${DATA_FOLDER}
-        if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
-            verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
+      # if DB_TYPE  then make dump of db in ${DATA_FOLDER}
+      if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
+        verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
     		if ! ${DB_TYPE}_backup.sh; then
-                echo "0" > ${CLOSING_STATE}
-    			exit_fatal_message "backup error ${DB_TYPE}"
-    	   fi
-
-        fi
+          echo "0" > ${CLOSING_STATE}
+  	      exit_fatal_message "backup error ${DB_TYPE}"
+    	  fi
+      fi
 
     	if [ -z "${container_type}" ]; then
+          # check that a ${planner^^}_XXXX_CONTAINER  is defined
+          if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
+            echo "0" > ${CLOSING_STATE}
+      			exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
+          fi
 
-                # check that a ${planner^^}_XXXX_CONTAINER  is defined
-                if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
-                    echo "0" > ${CLOSING_STATE}
-    				exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
-                fi
+          for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
+            container_type=$(echo $container_variable | cut -d_ -f2)
+            container_type=${container_type,,}
 
-                for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
-                       container_type=$(echo $container_variable | cut -d_ -f2)
-                       container_type=${container_type,,}
+            verbose_message  "-------------- ${container_type} backend -----------------"
+            backup_to_${container_type}_container ${planner} ${backup_mode}
+          done
+      		echo "0" > ${CLOSING_STATE}
 
-                       verbose_message  "-------------- ${container_type} backend -----------------"
-                       backup_to_${container_type}_container ${planner} ${backup_mode}
-               done
-    		   echo "0" > ${CLOSING_STATE}
+      elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
+          #### push backupset  to  container if for planner defined
+          backup_to_${container_type}_container ${planner} ${backup_mode}
+    			echo "0" > ${CLOSING_STATE}
+      else
+          echo "0" > ${CLOSING_STATE}
+    		  exit_fatal_message "error in make_closing_backup"
+      fi
 
-        elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
-                #### push backupset  to  container if for planner defined
-                 backup_to_${container_type}_container ${planner} ${backup_mode}
-    			 echo "0" > ${CLOSING_STATE}
-        else
-             echo "0" > ${CLOSING_STATE}
-    		 exit_fatal_message "error in make_closing_backup"
-        fi
-    else
+      if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
+          verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
+          ${POST_HOOK_BACKUP_SCRIPT}
+          on_error_exit_fatal_message "post-hook-backup-script error"
+          verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
+      fi
+    #else
         #verbose_message "closing nothing to do"
-
-        if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
-            ${POST_HOOK_BACKUP_SCRIPT}
-            on_error_exit_fatal_message "post-hook-backup-script error"
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
-        fi
-
     fi
 }
 
@@ -358,16 +355,16 @@ make_closing_backup() {
 
 make_backup() {
 
-    #convert into lowercase
-    local planner=${1,,}
-    local container_type=${2,,}
-    local backup_mode=${3,,}
+  #convert into lowercase
+  local planner=${1,,}
+  local container_type=${2,,}
+  local backup_mode=${3,,}
 
 
-    local day_of_week=$(date +%w)
-    local day_of_month=$(date +%d)
+  local day_of_week=$(date +%w)
+  local day_of_month=$(date +%d)
 
-    local container_variable
+  local container_variable
 
 
     # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
@@ -376,31 +373,30 @@ make_backup() {
 	[[ $closing_state -eq 2 ]] && exit_fatal_message "a closing backup is pending"
 
 
+  [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
 
-    [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE  must be defined"
+  [ ! -z "${planner}" ] && [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
 
-    [ ! -z "${planner}" ] && [ ${planner} != "daily" ] && [ ${planner} != "monthly" ] && exit_fatal_message "unknown planner mode"
+  [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
-    [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
-
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
 
-# force full mode if day_of_week day_of_month or planner is monthly
-    [ -z "${backup_mode}" ] && ( [ "${planner}" == "monthly" ] || [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ] || [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] ) && backup_mode=full
+  # force full mode if day_of_week day_of_month or planner is monthly
+  [ -z "${backup_mode}" ] && ( [ "${planner}" == "monthly" ] || [ ${DAILY_BACKUP_FULL_DAY} -eq ${day_of_week} ] || [ ${MONTHLY_BACKUP_DAY} -eq ${day_of_month} ] ) && backup_mode=full
 
-	[ "${FULL_MODE}" == "true" ] && backup_mode=full
-
+  [ "${FULL_MODE}" == "true" ] && backup_mode=full
 
 
 
-if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
-    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
-    ${PRE_HOOK_BACKUP_SCRIPT}
-    on_error_exit_fatal_message "pre-hook-backup-script error"
-    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
 
-fi
+  if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
+      verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
+      ${PRE_HOOK_BACKUP_SCRIPT}
+      on_error_exit_fatal_message "pre-hook-backup-script error"
+      verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
+
+  fi
 
 #if DB_TYPE  then make dump of db in ${DATA_FOLDER}
    if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
@@ -475,10 +471,6 @@ fi
     else
          exit_fatal_message "error in make_backup"
     fi
-
-
-
-
 
 }
 
