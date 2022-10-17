@@ -33,6 +33,6 @@ nbTar=$(ls -rt ${DUMPS_FOLDER}/*.tgz| wc -l)
 nbToRemove=$((nbTar - DUMPS_KEEP))
 dumpout=$(cat ${DUMPS_FOLDER}/dumpout.txt)
 
-echo remove previous tgz except $dumpout 
+echo remove previous tgz except $dumpout
 ls -lrt ${DUMPS_FOLDER}/*.tgz | grep -v $dumpout | head -n $nbToRemove
 ls -rt ${DUMPS_FOLDER}/*.tgz | grep -v $dumpout | head -n $nbToRemove | xargs rm -f

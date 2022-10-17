@@ -7,7 +7,7 @@ export DUMPS_FOLDER=${DUMPS_FOLDER:-${SHUTTLE_HOME}/dumps}
 
 if [ ! -d "${DUMPS_FOLDER}" ]; then
   echo "this shuttle have no dumps folder"
-  exit -1
+  exit 0
 fi
 
 # this allow to dump shuttle FS repository in FS mode
@@ -31,4 +31,5 @@ echo clear folder "${REPOSITORIES_FOLDER}"
 rm -rf ${REPOSITORIES_FOLDER}/*
 
 cd ${SHUTTLE_HOME}
+echo tar -zxvf ${DUMPS_FOLDER}/${tgzFile}
 tar -zxvf ${DUMPS_FOLDER}/${tgzFile}
