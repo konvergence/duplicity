@@ -2,7 +2,22 @@
 All notable changes to this project will be documented in this file.
 
 
-# latest, 0.8.18, 0.8.18.7 : 2021-04-15
+
+
+#  latest, 0.8.12, 0.8.12.9 : : 2022-10-17
+* add --daemon mode
+
+#  0.8.12.8 : : 2022-10-14
+* wrong duplicity release. duplicity was still in 0.8.12
+* Allow restore and backup hook scripts
+  * PRE_HOOK_BACKUP_SCRIPT      :  path of script to execute before  backup duplicity
+  * POST_HOOK_BACKUP_SCRIPT      : path of script to execute after  backup duplicity
+
+  * PRE_HOOK_RESTORE_SCRIPT      : path of script to execute before  restore duplicity
+  * POST_HOOK_RESTORE_SCRIPT      : path of script to execute after  restore duplicity
+
+
+#  0.8.18, 0.8.18.7 : 2021-04-15
 * update duplicity to 0.8.18
 * add variable DB_SKIP_DROP=false . If true, to allow to not include drop instruction into backup before create objects
 * add variable DB_DATABASES="" . if not empty,  allow to give a list of databases names separate with space. if empty or not exists, dump all databases

@@ -18,7 +18,7 @@ ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
 ARG JOBBER_VERSION="v1.4.4"
-ARG DUPLICITY_RELEASE=0.8.18
+ARG DUPLICITY_RELEASE=0.8.12
 
 RUN apt-get update \
    && apt-get install -y --no-install-recommends apt-utils \

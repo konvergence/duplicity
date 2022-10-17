@@ -11,9 +11,10 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
    - database backup is done if ${DB_TYPE} is defined with other DB_XXXX variables into ${DATA_FOLDER}
    - duplicity backup if done on ${DATA_FOLDER}
    - Allow daily and monthly backup with associated prefix into containers and TTL retention
-   
+
 ## available commands
        "--help" : display the help
+       "--deamon"  wait infinity
        "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift/sftp if defined
 
        "--backup  [[daily|monthly|closing] [filesystem|swift|sftp] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
@@ -25,8 +26,8 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 
        "--content  <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
        "--content-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
-   
-   
+
+
        "--list" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
 
        "--cleanup" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
@@ -53,7 +54,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
      - DB_MAX_WAIT=30 : max wait in secondes
      - DB_HOST=db : database host server
      - DB_PORT=5432 : database listen port
-     - DB_SYSTEM_USER=postgres 
+     - DB_SYSTEM_USER=postgres
      - DB_SYSTEM_PASSWORD
      - DB_SYSTEM_REPO=postgres
      - DB_DUMP_FILE=dumpall.out
@@ -73,8 +74,6 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
     OS_PASSWORD=yourUserPassword
 
 
-
-
 ## job management
       "--jobber-backup" command allow to use jobber to schedule job
       in this case you have to define variable DAILY_JOB_HOUR="00 00 02"     : in jobber cron time format SS MM HH
@@ -83,7 +82,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
         JOB_SHOW_OUTPUT=true : show ouput of the job into stdout
         JOB_NOTIFY_ERR=false
         JOB_NOTIFY_FAIL=false
-      
+
      variables to send email notification, in case of  JOB_NOTIFY_ERR or JOB_NOTIFY_FAIL = true
         SMTP_HOST=yoursmtpserver
         SMTP_PORT=587
@@ -92,10 +91,18 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
         SMTP_USER=smtpuser
         SMTP_PASS=smtppass
         SMTP_FROM=jobber@infra.local
-        SMTP_TO=itteam@infra.local 
+        SMTP_TO=itteam@infra.local
 
 
-## daily backup management 
+## backup hook scripts
+* PRE_HOOK_BACKUP_SCRIPT      :  path of script to execute before  backup duplicity
+* POST_HOOK_BACKUP_SCRIPT      : path of script to execute after  backup duplicity
+
+## restore hook scrpits
+* PRE_HOOK_RESTORE_SCRIPT      : path of script to execute before  restore duplicity
+* POST_HOOK_RESTORE_SCRIPT      : path of script to execute after  restore duplicity
+
+## daily backup management
 
 ###   working
    if ${DB_TYPE} variable are defined and supported then a database backup is done into ${DATA_FOLDER}, using other DB_XXXX variable are defined (DB_HOST,DB_PORT, DB_SYSTEM_USER, DB_SYSTEM_PASSWORD, DB_SYSTEM_REPO)
@@ -134,7 +141,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 ###   retention
      if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_[FILESYSTEM|SWIFT|SFTP]_CONTAINER}
 
-   
+
 ###   Default values
       MONTHLY_BACKUP_DAY=1 : day of month to trigger full backup into archive  : 1 thru 31
       MONTHLY_BACKUP_MAX_MONTH=12  : max month to keep
@@ -147,7 +154,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
       MONTHLY_BACKUP_MAX_FULL=0: if > 0 , max full to keep
       MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
-## closing backup management 
+## closing backup management
 
 ###   working
 	CLOSING_STATE=/tmp/closing-backup.state # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
@@ -162,7 +169,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 
 
 
-## create a daily backup into a swift container and a filesystem container , keep 5 last backupset, incremental daily backup are maintain only on 2 last backupset, full backup is done if dayofweek is DAILY_BACKUP_FULL_DAY or 1st backup 
+## create a daily backup into a swift container and a filesystem container , keep 5 last backupset, incremental daily backup are maintain only on 2 last backupset, full backup is done if dayofweek is DAILY_BACKUP_FULL_DAY or 1st backup
 ```shell
 docker run --rm \
     -v shuttle-web://data \
@@ -314,7 +321,7 @@ docker run --rm \
     -e DAILY_FILESYSTEM_CONTAINER=//backup \
     konvergence/duplicity:${RELEASE} --list
   ```
-  
+
 # list all daily backupset into DAILY_SWIFT_CONTAINER
 ```shell
 docker run --rm \
@@ -331,8 +338,8 @@ docker run --rm \
     -e DAILY_FILESYSTEM_CONTAINER=//backup \
     konvergence/duplicity:${RELEASE} --list  daily swift
 ```
- 
-# restore a given timestamp backup that exist into DAILY_FILESYSTEM_CONTAINER 
+
+# restore a given timestamp backup that exist into DAILY_FILESYSTEM_CONTAINER
 ```shell
 docker run --rm \
     -v shuttle-web://data \
@@ -344,8 +351,8 @@ docker run --rm \
     konvergence/duplicity:${RELEASE} --restore 2017-04-24T10:43:59
 ```
 
- 
-# restore a latest backup that exist into DAILY_FILESYSTEM_CONTAINER 
+
+# restore a latest backup that exist into DAILY_FILESYSTEM_CONTAINER
 ```shell
 docker run --rm \
     -v shuttle-web://data \
@@ -358,8 +365,8 @@ docker run --rm \
 ```
 
 
- 
-# restore a latest postgres backup that exist into DAILY_SWIFT_CONTAINER 
+
+# restore a latest postgres backup that exist into DAILY_SWIFT_CONTAINER
 ```shell
 docker run --rm \
     -v postgres-backup://backup \
@@ -399,7 +406,7 @@ docker run --rm \
     konvergence/duplicity:${RELEASE} --content 2017-04-24T10:43:59 daily swift
 ```
 
-# content of the latest 
+# content of the latest
 ```shell
 docker run --rm \
     -v web-backup://backup \

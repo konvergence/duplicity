@@ -159,7 +159,7 @@ jobber_create_jobs() {
     configfile="/root/.jobber"
     >${configfile}
 
-     jobber_create_backup_job
+   jobber_create_backup_job
 	 jobber_create_closing_job
 
     # because jobber don't take env variable
@@ -297,6 +297,14 @@ make_closing_backup() {
         # switch state to pending
         echo "2" > ${CLOSING_STATE}
 
+
+        if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
+            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT}"
+            ${PRE_HOOK_BACKUP_SCRIPT}
+            on_error_exit_fatal_message "pre-hook-backup-script error"
+        fi
+
+
         # if DB_TYPE  then make dump of db in ${DATA_FOLDER}
         if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
             verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
@@ -332,8 +340,15 @@ make_closing_backup() {
              echo "0" > ${CLOSING_STATE}
     		 exit_fatal_message "error in make_closing_backup"
         fi
-   # else
+    else
         #verbose_message "closing nothing to do"
+
+        if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            ${POST_HOOK_BACKUP_SCRIPT}
+            on_error_exit_fatal_message "post-hook-backup-script error"
+        fi
+
     fi
 }
 
@@ -377,6 +392,12 @@ make_backup() {
 
 
 
+if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
+    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT}"
+    ${PRE_HOOK_BACKUP_SCRIPT}
+    on_error_exit_fatal_message "pre-hook-backup-script error"
+fi
+
 #if DB_TYPE  then make dump of db in ${DATA_FOLDER}
    if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
@@ -407,15 +428,19 @@ make_backup() {
 					backup_to_${container_type}_container monthly full
 				fi
         done
-
+        if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            ${POST_HOOK_BACKUP_SCRIPT}
+            on_error_exit_fatal_message "post-hook-backup-script error"
+        fi
 
 # if only planner type, try with all container
     elif [ ! -z "${planner}" ] && [ -z "${container_type}" ]; then
 
-            # check that a ${planner^^}_XXXX_CONTAINER  is defined
-            if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
-                exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
-            fi
+        # check that a ${planner^^}_XXXX_CONTAINER  is defined
+        if  ! env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER > /dev/null; then
+            exit_fatal_message "one or more ${planner^^}_xxxxx_CONTAINER  must be defined"
+        fi
 
         for container_variable in $(env | cut -d= -f1 | grep ${planner^^} | grep CONTAINER); do
                 container_type=$(echo $container_variable | cut -d_ -f2)
@@ -425,13 +450,28 @@ make_backup() {
                 backup_to_${container_type}_container ${planner} ${backup_mode}
         done
 
+        if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            ${POST_HOOK_BACKUP_SCRIPT}
+            on_error_exit_fatal_message "post-hook-backup-script error"
+        fi
 
     elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
-            #### push backupset  to  container if for planner defined
-             backup_to_${container_type}_container ${planner} ${backup_mode}
+        #### push backupset  to  container if for planner defined
+         backup_to_${container_type}_container ${planner} ${backup_mode}
+
+        if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            ${POST_HOOK_BACKUP_SCRIPT}
+            on_error_exit_fatal_message "post-hook-backup-script error"
+        fi
     else
          exit_fatal_message "error in make_backup"
     fi
+
+
+
+
 
 }
 
@@ -902,6 +942,12 @@ restore_backup_from_filesystem_container() {
 
     fi
 
+    if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        ${PRE_HOOK_RESTORE_SCRIPT}
+        on_error_exit_fatal_message "pre-hook-restore-script error"
+    fi
+
 
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
@@ -924,6 +970,12 @@ restore_backup_from_filesystem_container() {
 
     if [ $? -eq 0 ]; then
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
+
+        if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            ${POST_HOOK_RESTORE_SCRIPT}
+            on_error_exit_fatal_message "post-hook-restore-script error"
+        fi
 
         #if DB_TYPE  then make dump of db
         if [ ! -z "$DB_TYPE" ] && [ "$DB_TYPE" != "none" ]; then
@@ -949,6 +1001,13 @@ restore_backup_from_swift_container() {
         verbose_message "clear ${DATA_FOLDER} before restore"
         rm -rf ${DATA_FOLDER}/*
 
+    fi
+
+
+    if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        ${PRE_HOOK_RESTORE_SCRIPT}
+        on_error_exit_fatal_message "pre-hook-restore-script error"
     fi
 
     #dynamic variables
@@ -978,6 +1037,12 @@ restore_backup_from_swift_container() {
     if [ $? -eq 0 ]; then
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
 
+        if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            ${POST_HOOK_RESTORE_SCRIPT}
+            on_error_exit_fatal_message "post-hook-restore-script error"
+        fi
+
         #if DB_TYPE  then make dump of db
         if [ ! -z "$DB_TYPE" ] && [ "$DB_TYPE" != "none" ]; then
             verbose_message "make ${DB_TYPE} database restore from ${DATA_FOLDER}/${DB_DUMP_FILE}"
@@ -1002,6 +1067,13 @@ restore_backup_from_pca_container() {
         verbose_message "clear ${DATA_FOLDER} before restore"
         rm -rf ${DATA_FOLDER}/*
 
+    fi
+
+
+    if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        ${PRE_HOOK_RESTORE_SCRIPT}
+        on_error_exit_fatal_message "pre-hook-restore-script error"
     fi
 
     #dynamic variables
@@ -1031,6 +1103,12 @@ restore_backup_from_pca_container() {
     if [ $? -eq 0 ]; then
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
 
+        if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            ${POST_HOOK_RESTORE_SCRIPT}
+            on_error_exit_fatal_message "post-hook-restore-script error"
+        fi
+
         #if DB_TYPE  then make dump of db
         if [ ! -z "$DB_TYPE" ] && [ "$DB_TYPE" != "none" ]; then
             verbose_message "make ${DB_TYPE} database restore from ${DATA_FOLDER}/${DB_DUMP_FILE}"
@@ -1057,6 +1135,11 @@ restore_backup_from_sftp_container() {
 
     fi
 
+    if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        ${PRE_HOOK_RESTORE_SCRIPT}
+        on_error_exit_fatal_message "pre-hook-restore-script error"
+    fi
 
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
@@ -1083,6 +1166,12 @@ restore_backup_from_sftp_container() {
 
     if [ $? -eq 0 ]; then
         success_message "${planner} restore ${DATA_FOLDER} from ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
+
+        if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            ${POST_HOOK_RESTORE_SCRIPT}
+            on_error_exit_fatal_message "post-hook-restore-script error"
+        fi
 
         #if DB_TYPE  then make dump of db
         if [ ! -z "$DB_TYPE" ] && [ "$DB_TYPE" != "none" ]; then
