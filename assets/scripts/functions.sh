@@ -299,9 +299,10 @@ make_closing_backup() {
 
 
         if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT}"
+            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
             ${PRE_HOOK_BACKUP_SCRIPT}
             on_error_exit_fatal_message "pre-hook-backup-script error"
+            verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
         fi
 
 
@@ -344,9 +345,10 @@ make_closing_backup() {
         #verbose_message "closing nothing to do"
 
         if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
             ${POST_HOOK_BACKUP_SCRIPT}
             on_error_exit_fatal_message "post-hook-backup-script error"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
         fi
 
     fi
@@ -393,9 +395,11 @@ make_backup() {
 
 
 if [ ! -z "$PRE_HOOK_BACKUP_SCRIPT" ]; then
-    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT}"
+    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} started"
     ${PRE_HOOK_BACKUP_SCRIPT}
     on_error_exit_fatal_message "pre-hook-backup-script error"
+    verbose_message "pre-hook-backup-script ${PRE_HOOK_BACKUP_SCRIPT} finished"
+
 fi
 
 #if DB_TYPE  then make dump of db in ${DATA_FOLDER}
@@ -429,9 +433,10 @@ fi
 				fi
         done
         if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
             ${POST_HOOK_BACKUP_SCRIPT}
             on_error_exit_fatal_message "post-hook-backup-script error"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
         fi
 
 # if only planner type, try with all container
@@ -451,9 +456,10 @@ fi
         done
 
         if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
             ${POST_HOOK_BACKUP_SCRIPT}
             on_error_exit_fatal_message "post-hook-backup-script error"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
         fi
 
     elif [ ! -z "${planner}" ] && [ ! -z "${container_type}" ]; then
@@ -461,9 +467,10 @@ fi
          backup_to_${container_type}_container ${planner} ${backup_mode}
 
         if [ ! -z "$POST_HOOK_BACKUP_SCRIPT" ]; then
-            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT}"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} started"
             ${POST_HOOK_BACKUP_SCRIPT}
             on_error_exit_fatal_message "post-hook-backup-script error"
+            verbose_message "post-hook-backup-script ${POST_HOOK_BACKUP_SCRIPT} finished"
         fi
     else
          exit_fatal_message "error in make_backup"
@@ -943,9 +950,10 @@ restore_backup_from_filesystem_container() {
     fi
 
     if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
-        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} started"
         ${PRE_HOOK_RESTORE_SCRIPT}
         on_error_exit_fatal_message "pre-hook-restore-script error"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} finished"
     fi
 
 
@@ -972,9 +980,10 @@ restore_backup_from_filesystem_container() {
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
 
         if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
-            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} started"
             ${POST_HOOK_RESTORE_SCRIPT}
             on_error_exit_fatal_message "post-hook-restore-script error"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} finished"
         fi
 
         #if DB_TYPE  then make dump of db
@@ -1005,9 +1014,10 @@ restore_backup_from_swift_container() {
 
 
     if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
-        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} started"
         ${PRE_HOOK_RESTORE_SCRIPT}
         on_error_exit_fatal_message "pre-hook-restore-script error"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} finished"
     fi
 
     #dynamic variables
@@ -1038,9 +1048,10 @@ restore_backup_from_swift_container() {
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
 
         if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
-            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} started"
             ${POST_HOOK_RESTORE_SCRIPT}
             on_error_exit_fatal_message "post-hook-restore-script error"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} finished"
         fi
 
         #if DB_TYPE  then make dump of db
@@ -1071,9 +1082,10 @@ restore_backup_from_pca_container() {
 
 
     if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
-        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} started"
         ${PRE_HOOK_RESTORE_SCRIPT}
         on_error_exit_fatal_message "pre-hook-restore-script error"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} finished"
     fi
 
     #dynamic variables
@@ -1104,9 +1116,10 @@ restore_backup_from_pca_container() {
         success_message "${planner} restore ${DATA_FOLDER} from ${duplicity_target}"
 
         if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
-            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} started"
             ${POST_HOOK_RESTORE_SCRIPT}
             on_error_exit_fatal_message "post-hook-restore-script error"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} finished"
         fi
 
         #if DB_TYPE  then make dump of db
@@ -1136,9 +1149,10 @@ restore_backup_from_sftp_container() {
     fi
 
     if [ ! -z "$PRE_HOOK_RESTORE_SCRIPT" ]; then
-        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT}"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} started"
         ${PRE_HOOK_RESTORE_SCRIPT}
         on_error_exit_fatal_message "pre-hook-restore-script error"
+        verbose_message "pre-hook-restore-script ${PRE_HOOK_RESTORE_SCRIPT} finished"
     fi
 
     #dynamic variables
@@ -1168,9 +1182,10 @@ restore_backup_from_sftp_container() {
         success_message "${planner} restore ${DATA_FOLDER} from ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
 
         if [ ! -z "$POST_HOOK_RESTORE_SCRIPT" ]; then
-            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT}"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} started"
             ${POST_HOOK_RESTORE_SCRIPT}
             on_error_exit_fatal_message "post-hook-restore-script error"
+            verbose_message "post-hook-restore-script ${POST_HOOK_RESTORE_SCRIPT} finished"
         fi
 
         #if DB_TYPE  then make dump of db

@@ -5,7 +5,6 @@ export SHUTTLE_HOME=${SHUTTLE_HOME:-/data/shuttle/home}
 export REPOSITORIES_FOLDER=${REPOSITORIES_FOLDER:-${SHUTTLE_HOME}/repositories}
 export DUMPS_FOLDER=${DUMPS_FOLDER:-${SHUTTLE_HOME}/dumps}
 
-export DUMPS_KEEP=${DUMPS_KEEP:-0}
 
 # DUMPS_FOLDER is /data/shuttle/home/dumps
 
@@ -29,13 +28,6 @@ if [ -f ${DUMPS_FOLDER}/dumpin.txt ]; then
   exit -1
 fi
 
-
-# keep only DUMPS_KEEP previous tgz
-nbTar=$(ls -rt ${DUMPS_FOLDER}/*.tgz| wc -l)
-nbToRemove=$((nbTar - DUMPS_KEEP))
-echo remove previous tgz
-ls -lrt ${DUMPS_FOLDER}/*.tgz | head -n $nbToRemove
-ls -rt ${DUMPS_FOLDER}/*.tgz | head -n $nbToRemove | xargs rm -f
 
 
 rm -f  ${DUMPS_FOLDER}/dumpout.txt

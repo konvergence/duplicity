@@ -11,7 +11,7 @@ source /bin/functions.sh
 
 if [ "$1" = '--backup' ]; then
     shift 1
-    if [ -f "${DAEMON_STATE}"]; then
+    if [ -f "${DAEMON_STATE}" ]; then
        make_backup "$@" > /proc/1/fd/1 2>&1
     else
 	     make_backup "$@"
@@ -24,22 +24,38 @@ elif [ "$1" = '--closing-backup' ]; then
 
 elif [ "$1" = '--delete-older' ]; then
     shift 1
-    delete_older_backup "$@"
+    if [ -f "${DAEMON_STATE}" ]; then
+      delete_older_backup "$@"   > /proc/1/fd/1 2>&1
+    else
+      delete_older_backup "$@"
+    fi
 
 elif [ "$1" = '--restore' ]; then
     shift 1
-    restore_backup "$@"
+    if [ -f "${DAEMON_STATE}" ]; then
+      restore_backup "$@" > /proc/1/fd/1 2>&1
+    else
+      restore_backup "$@"
+    fi
 
 elif [ "$1" = '--restore-path' ]; then
     shift 1
     PATH_TO_RESTORE=$1
    [ -z "${PATH_TO_RESTORE}" ] && exit_fatal_message "PATH_TO_RESTORE must be defined"
     shift 1
-    restore_backup "$@"
+    if [ -f "${DAEMON_STATE}" ]; then
+      restore_backup "$@"  > /proc/1/fd/1 2>&1
+    else
+      restore_backup "$@"
+    fi
 
 elif [ "$1" = '--restore-latest' ]; then
     shift 1
-    restore_backup LATEST "$@"
+    if [ -f "${DAEMON_STATE}" ]; then
+      restore_backup LATEST "$@"  > /proc/1/fd/1 2>&1
+    else
+      restore_backup LATEST "$@"
+    fi
 
 elif [ "$1" = '--list' ]; then
     shift 1
