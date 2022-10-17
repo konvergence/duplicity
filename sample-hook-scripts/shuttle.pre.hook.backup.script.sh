@@ -32,7 +32,8 @@ fi
 
 rm -f  ${DUMPS_FOLDER}/dumpout.txt
 
-# trigger backup
+# need one session to  trigger backup
+curl -s -F user=admin -F password=${ADMIN_PASSWORD} -F action=tasks  http://shuttle-service:8080/${WEBAPP_NAME}.WebService/curl >/dev/null
 echo "repositories/" > ${DUMPS_FOLDER}/dumpin.txt
 
 echo start shuttle dump FS
