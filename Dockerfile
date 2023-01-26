@@ -18,21 +18,31 @@ ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
 ARG JOBBER_VERSION="v1.4.4"
-ARG DUPLICITY_RELEASE=0.8.12
+ARG DUPLICITY_RELEASE=1.2.1
 
-RUN apt-get update \
+
+RUN echo "#### apt add source for postgresql-client-14 for focal" \
+    && apt-get update \
+    && apt-get install -y ca-certificates gnupg wget \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && (wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null) \
+&& echo "#### add stable duplicity PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:duplicity-team/duplicity-release-git \
+&& echo "#### install needed packages for focal" \    
+   && apt-get update \
    && apt-get install -y --no-install-recommends apt-utils \
    && apt-get install -y  tzdata \
                           gettext-base \
-                          postgresql-client-12 \
+                          postgresql-client-14 \
                           mysql-client-8.0 \
                           python3-swiftclient \
                           msmtp \
                           git curl  golang-go \
                           jq \
-&& echo "#### intall duplicity" \
+&& echo "#### intall duplicity from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
    && apt-get install -y  python-pycryptopp python3-boto python3-dev \
-   && apt-get install -y  duplicity \
+   && apt-get install -y  duplicity=1.2.1-ppa202212021851~ubuntu20.04.1 \
 && echo "#### install sftp/scp paramiko module" \
    && apt-get install -y python3-paramiko python-gobject-2 \
 && echo "#### install sftp/scp pexpect module" \

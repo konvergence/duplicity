@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 
 
-#  latest, 0.8.12, 0.8.12.9 : : 2022-10-17
+#  latest, 1.2.1, 1.2.1.9 : : 2023-01-26
+* duplicity 1.2.1 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
+
+
+#  0.8.12, 0.8.12.9 : : 2022-10-17
 * add --daemon mode
 
 #  0.8.12.8 : : 2022-10-14
