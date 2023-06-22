@@ -3,8 +3,14 @@ All notable changes to this project will be documented in this file.
 
 
 
+#  latest, 1.2.3, 1.2.3-pg15.r0 : : 2023-06-22
+* duplicity 1.2.3 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
+* postgresql-client-15
 
-#  latest, 1.2.1, 1.2.1.9 : : 2023-01-26
+
+
+
+#  1.2.1, 1.2.1.9 : : 2023-01-26
 * duplicity 1.2.1 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
 * postgresql-client-14
 
