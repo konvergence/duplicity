@@ -11,15 +11,15 @@ popd
 
 
 RELEASE_MAJOR="2"
-RELEASE_MINOR="2.1-pg15"
-RELEASE=${RELEASE_MAJOR}.${RELEASE_MINOR}
+RELEASE_MINOR="2.1"
+RELEASE=${RELEASE_MAJOR}.${RELEASE_MINOR}-pg${PG_VERSION}
 
 
 
 
 # Release Build of the Docker Image
 # Final Docker Image Name
-IMAGE_TAG=${RELEASE}.${IMAGE_BUILD}
+IMAGE_TAG=${RELEASE}-${IMAGE_BUILD}
 
 
 
@@ -31,6 +31,7 @@ docker build $BUILD_OPTIONS -t ${DOCKER_REPO}:${IMAGE_TAG}  \
         --build-arg RELEASE_MAJOR=${RELEASE_MAJOR} \
         --build-arg RELEASE_MINOR=${RELEASE_MINOR} \
         --build-arg RELEASE=${RELEASE} \
+        --build-arg PG_VERSION=${PG_VERSION} \
         --file ${DOCKER_FILENAME} \
         ${BUILD_FOLDER}
 

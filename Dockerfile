@@ -5,8 +5,10 @@ ARG RELEASE_MAJOR
 ARG RELEASE_MINOR
 ARG RELEASE
 
+ARG PG_VERSION
 
-RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" ]
+
+RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" ] && [ -n "${PG_VERSION}" ]
 
 # Image Label
 LABEL maintainer="konvergence.com" \
@@ -21,7 +23,7 @@ ARG JOBBER_VERSION="v1.4.4"
 ARG DUPLICITY_RELEASE=2.2.1
 
 
-RUN echo "#### apt add source for postgresql-client-15 for focal" \
+RUN echo "#### apt add source for postgresql-client focal" \
     && apt-get update \
     && apt-get install -y ca-certificates gnupg wget \
     && echo "deb http://apt.postgresql.org/pub/repos/apt focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
@@ -34,7 +36,7 @@ RUN echo "#### apt add source for postgresql-client-15 for focal" \
    && apt-get install -y --no-install-recommends apt-utils \
    && apt-get install -y  tzdata \
                           gettext-base \
-                          postgresql-client-15 \
+                          postgresql-client-${PG_VERSION} \
                           mysql-client-8.0 \
                           python3-swiftclient \
                           msmtp \
