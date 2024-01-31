@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-
+set -o pipefail
 
 echo_red() {
     local ccred='\033[0;31m'

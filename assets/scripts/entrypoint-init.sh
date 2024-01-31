@@ -5,6 +5,7 @@
 #set -e
 
 [ ! -z $DEBUG  ] && set -x
+set -o pipefail
 
 # manage timezone
 if [ ! -z "$TZ" ]; then

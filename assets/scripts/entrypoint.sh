@@ -5,6 +5,7 @@
 #set -e
 
 [ ! -z $DEBUG  ] && set -x
+set -o pipefail
 
 source /bin/env-defaults.sh
 source /bin/functions.sh

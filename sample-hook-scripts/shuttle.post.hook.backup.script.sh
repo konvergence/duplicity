@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -o pipefail
 
 export SHUTTLE_HOME=${SHUTTLE_HOME:-/data/shuttle/home}
 export REPOSITORIES_FOLDER=${REPOSITORIES_FOLDER:-${SHUTTLE_HOME}/repositories}

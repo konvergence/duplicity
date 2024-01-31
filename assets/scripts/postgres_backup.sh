@@ -3,7 +3,7 @@
 # https://serverfault.com/questions/857339/backing-up-restoring-postgres-using-pg-dumpall-split-gzip-set-on-error
 
 [ ! -z ${DEBUG}  ] && set -x
-
+set -o pipefail
 
 DB_MAX_WAIT=${DB_MAX_WAIT:-30}
 

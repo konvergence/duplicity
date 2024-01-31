@@ -2,7 +2,7 @@
 # wait-for-postgres.sh
 
 [ ! -z ${DEBUG}  ] && set -x
-
+set -o pipefail
 
 DB_MAX_WAIT=${DB_MAX_WAIT:-30}
 

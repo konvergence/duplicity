@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -o pipefail
+
 export DEBUG=${DEBUG:-}
 
 export TZ=${TZ:-Europe/Paris}
