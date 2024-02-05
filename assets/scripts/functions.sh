@@ -489,7 +489,7 @@ backup_to_filesystem_container() {
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
     local max_full_variable="${planner}_BACKUP_MAX_FULL"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="file://${!filesystem_container_variable}"
     local timstamp=""
 
@@ -518,7 +518,7 @@ backup_to_filesystem_container() {
 
 
         verbose_message "${planner} ${backup_mode} backup ${DATA_FOLDER} to ${duplicity_target}"
-        duplicity ${backup_mode} ${duplicity_options} --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
+        duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
@@ -566,7 +566,7 @@ backup_to_swift_container() {
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
     local max_full_variable="${planner}_BACKUP_MAX_FULL"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local timstamp=""
 
     #force OS_REGION_NAME
@@ -602,7 +602,7 @@ backup_to_swift_container() {
 
 
         verbose_message "${planner} ${backup_mode} backup ${DATA_FOLDER} to ${duplicity_target}"
-        duplicity ${backup_mode} ${duplicity_options} --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
+        duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
@@ -646,7 +646,7 @@ backup_to_pca_container() {
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
     local max_full_variable="${planner}_BACKUP_MAX_FULL"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local timstamp=""
 
     #force OS_REGION_NAME
@@ -682,7 +682,7 @@ backup_to_pca_container() {
 
 
         verbose_message "${planner} ${backup_mode} backup ${DATA_FOLDER} to ${duplicity_target}"
-        duplicity ${backup_mode} ${duplicity_options} --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
+        duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
@@ -726,7 +726,7 @@ backup_to_sftp_container() {
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
     local max_full_variable="${planner}_BACKUP_MAX_FULL"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
     local timstamp=""
@@ -759,7 +759,7 @@ backup_to_sftp_container() {
 
 
         verbose_message "${planner} ${backup_mode} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
-        duplicity ${backup_mode} ${duplicity_options} --ssh-options="${ssh_options}" --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
+        duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --ssh-options="${ssh_options}" --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
             success_message "${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
@@ -822,7 +822,7 @@ delete_older_backup_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="file://${!filesystem_container_variable}"
 
     duplicity remove-older-than  ${timstamp} ${duplicity_options} ${duplicity_target}
@@ -840,7 +840,7 @@ delete_older_backup_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -864,7 +864,7 @@ delete_older_backup_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -890,7 +890,7 @@ delete_older_backup_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
@@ -952,7 +952,7 @@ restore_backup_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="file://${!filesystem_container_variable}"
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
@@ -1015,7 +1015,7 @@ restore_backup_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}  --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}  --force"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -1083,7 +1083,7 @@ restore_backup_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}  --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}  --force"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -1150,7 +1150,7 @@ restore_backup_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
@@ -1225,7 +1225,7 @@ content_backup_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="file://${!filesystem_container_variable}"
 
     if [ "${timstamp}" == "LATEST" ]; then
@@ -1247,7 +1247,7 @@ content_backup_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
 
     #force OS_REGION_NAME
@@ -1275,7 +1275,7 @@ content_backup_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
 
     #force OS_REGION_NAME
@@ -1303,7 +1303,7 @@ content_backup_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
@@ -1345,7 +1345,7 @@ list_backupset_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="file://${!filesystem_container_variable}"
 
 
@@ -1362,7 +1362,7 @@ list_backupset_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
 
     #force OS_REGION_NAME
@@ -1385,7 +1385,7 @@ list_backupset_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
 
     #force OS_REGION_NAME
@@ -1408,7 +1408,7 @@ list_backupset_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
@@ -1448,7 +1448,7 @@ cleanup_backupset_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="file://${!filesystem_container_variable}"
 
 
@@ -1465,7 +1465,7 @@ cleanup_backupset_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
 
 
     #force OS_REGION_NAME
@@ -1488,7 +1488,7 @@ cleanup_backupset_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
 
 
     #force OS_REGION_NAME
@@ -1511,7 +1511,7 @@ cleanup_backupset_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable} --force"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable} --force"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
@@ -1557,7 +1557,7 @@ compare_backup_from_filesystem_container() {
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="file://${!filesystem_container_variable}"
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
@@ -1591,7 +1591,7 @@ compare_backup_from_swift_container() {
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -1631,7 +1631,7 @@ compare_backup_from_pca_container() {
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
 
     #force OS_REGION_NAME
     local os_region_name_variable="${planner}_OS_REGION_NAME"
@@ -1672,7 +1672,7 @@ compare_backup_from_sftp_container() {
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local backup_prefix_variable="${planner}_BACKUP_PREFIX"
-    local duplicity_options="--allow-source-mismatch --file-prefix=${!backup_prefix_variable}"
+    local duplicity_options="--file-prefix=${!backup_prefix_variable}"
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
 
