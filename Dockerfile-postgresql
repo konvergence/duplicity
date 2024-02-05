@@ -1,0 +1,23 @@
+FROM konvergence/duplicity:2.2.2
+
+ARG PG_VERSION
+
+RUN [ -n "${PG_VERSION}" ]
+
+# Image Label
+LABEL maintainer="konvergence.com" \
+      website="https://www.konvergence.com" \
+      description="volume backup with duplicity using openstack swift, sftp or filesystem volume" \
+      release="${RELEASE}"
+
+RUN echo "#### apt add source for postgresql-client focal" \
+    && apt-get update \
+    && apt-get install -y ca-certificates gnupg wget \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && (wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null) \  
+    && apt-get update \
+    && apt-get install -y  postgresql-client-${PG_VERSION} \
+&& echo "#### clean " \
+     && apt-get clean \
+     && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /tmp/*

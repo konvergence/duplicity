@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+# 2.2.2, 2.2.2-r1, 2.2.2-pg12, 2.2.2-pg12-r1, 2.2.2-pg14, 2.2.2-pg14-r1, 2.2.2-pg15, 2.2.2-pg15-r1
+
+* duplicity 2.2.2 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
+* split Dockerfile in 2 images :
+  * filesystem image
+  * postgresql image
+
 
 #  latest, 1.2.3, 1.2.3-pg15.r0 : : 2023-06-22
 * duplicity 1.2.3 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
