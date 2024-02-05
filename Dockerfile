@@ -20,7 +20,7 @@ ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
 ARG JOBBER_VERSION="v1.4.4"
-ARG DUPLICITY_RELEASE=2.2.1
+ARG DUPLICITY_RELEASE=2.2.2
 
 
 RUN echo "#### apt add source for postgresql-client focal" \
@@ -44,7 +44,7 @@ RUN echo "#### apt add source for postgresql-client focal" \
                           jq \
 && echo "#### intall duplicity from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
    && apt-get install -y  python-pycryptopp python3-boto python3-dev \
-   && apt-get install -y  duplicity=2.2.1-ppa202401291823~ubuntu20.04.1 \
+   && apt-get install -y  duplicity=2.2.2-ppa202402031636~ubuntu20.04.1  \
 && echo "#### install sftp/scp paramiko module" \
    && apt-get install -y python3-paramiko python-gobject-2 \
 && echo "#### install sftp/scp pexpect module" \
