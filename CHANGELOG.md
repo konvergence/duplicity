@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+# 2.2.2, 2.2.2-r2, 2.2.2-pg12, 2.2.2-pg12-r2, 2.2.2-pg14, 2.2.2-pg14-r2, 2.2.2-pg15, 2.2.2-pg15-r2
+
+* duplicity `incr` is now `incremental`
+
 
 # 2.2.2, 2.2.2-r1, 2.2.2-pg12, 2.2.2-pg12-r1, 2.2.2-pg14, 2.2.2-pg14-r1, 2.2.2-pg15, 2.2.2-pg15-r1
 

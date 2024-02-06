@@ -17,7 +17,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
        "--deamon"  wait infinity
        "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift/sftp if defined
 
-       "--backup  [[daily|monthly|closing] [filesystem|swift|sftp] [full|incr]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
+       "--backup  [[daily|monthly|closing] [filesystem|swift|sftp] [full|incremental]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
 
        "--delete-older <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
        "--restore <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}

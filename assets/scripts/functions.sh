@@ -281,7 +281,7 @@ make_closing_backup() {
 
   [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
-  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
   # force full mode if empty
   [ -z "${backup_mode}" ] && backup_mode=full
@@ -379,7 +379,7 @@ make_backup() {
 
   [ ! -z "${container_type}" ] && ( ! check_backend ${planner} ${container_type} ) && exit_fatal_message "unknown container mode"
 
-  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+  [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
 
   # force full mode if day_of_week day_of_month or planner is monthly
@@ -482,7 +482,7 @@ backup_to_filesystem_container() {
     local planner=${1^^}
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
@@ -558,7 +558,7 @@ backup_to_swift_container() {
     local planner=${1^^}
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
@@ -638,7 +638,7 @@ backup_to_pca_container() {
     local planner=${1^^}
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
@@ -719,7 +719,7 @@ backup_to_sftp_container() {
     local planner=${1^^}
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
-    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incr" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"

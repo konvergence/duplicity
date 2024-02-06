@@ -12,20 +12,11 @@ PG_VERSIONS=$(grep "^PG_VERSIONS=" build.sh | cut -d'=' -f2- | tr -d '"')
 RELEASE_MAJOR=$(grep "^RELEASE_MAJOR=" buildDockerImage.sh | cut -d'=' -f2- | tr -d '"')
 RELEASE_MINOR=$(grep "^RELEASE_MINOR=" buildDockerImage.sh | cut -d'=' -f2- | tr -d '"')
 
+# Filesystem
 
-TAG=${RELEASE_MAJOR}.${RELEASE_MINOR}-${IMAGE_BUILD}
-    
-echo "docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}"
-docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}
+TAGS="${RELEASE_MAJOR}.${RELEASE_MINOR} ${RELEASE_MAJOR}.${RELEASE_MINOR}-${IMAGE_BUILD}"
 
-echo "docker push ${TARGET_REPO}:${TAG}"
-docker push ${TARGET_REPO}:${TAG}
-
-echo ""
-
-for PG_VERSION in $PG_VERSIONS; do
-    TAG=${RELEASE_MAJOR}.${RELEASE_MINOR}-pg${PG_VERSION}-${IMAGE_BUILD}
-    
+for TAG in $TAGS; do
     echo "docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}"
     docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}
 
@@ -33,6 +24,25 @@ for PG_VERSION in $PG_VERSIONS; do
     docker push ${TARGET_REPO}:${TAG}
 
     echo ""
+done
+
+
+# Postgresql
+
+for PG_VERSION in $PG_VERSIONS; do
+
+    TAGS="${RELEASE_MAJOR}.${RELEASE_MINOR}-pg${PG_VERSION} ${RELEASE_MAJOR}.${RELEASE_MINOR}-pg${PG_VERSION}-${IMAGE_BUILD}"
+
+    for TAG in $TAGS; do
+        echo "docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}"
+        docker tag ${DOCKER_REPO}:${TAG} ${TARGET_REPO}:${TAG}
+
+        echo "docker push ${TARGET_REPO}:${TAG}"
+        docker push ${TARGET_REPO}:${TAG}
+
+        echo ""
+    done
+
 done
 
 
