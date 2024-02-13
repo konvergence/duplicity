@@ -15,14 +15,24 @@ RELEASE_MAJOR="2"
 RELEASE_MINOR="2.2"
 RELEASE=${RELEASE_MAJOR}.${RELEASE_MINOR}
 
-if [ -z "${PG_VERSION}" ]
-then
-        DOCKER_FILENAME=$PWD/Dockerfile-filesystem
-        BUILD_OPTIONS="--force-rm=true --no-cache=true"
-else
+if [ ! -z "${PG_VERSION}" ]; then
+
         DOCKER_FILENAME=$PWD/Dockerfile-postgresql
         RELEASE=${RELEASE}-pg${PG_VERSION}
         BUILD_OPTIONS="--pull=false"
+
+elif [ ! -z "${MYSQL_VERSION}" ]; then
+
+        DOCKER_FILENAME=$PWD/Dockerfile-mysql
+        MYSQL_RELEASE_VERSION=$(echo "$MYSQL_VERSION" | tr -d '.')
+        RELEASE=${RELEASE}-mysql${MYSQL_RELEASE_VERSION}
+        BUILD_OPTIONS="--pull=false"
+
+else
+
+        DOCKER_FILENAME=$PWD/Dockerfile-base
+        BUILD_OPTIONS="--force-rm=true --no-cache=true"
+        
 fi
 
 
@@ -40,6 +50,7 @@ docker build $BUILD_OPTIONS -t ${DOCKER_REPO}:${IMAGE_TAG}  \
         --build-arg RELEASE_MINOR=${RELEASE_MINOR} \
         --build-arg RELEASE=${RELEASE} \
         --build-arg PG_VERSION=${PG_VERSION} \
+        --build-arg MYSQL_VERSION=${MYSQL_VERSION} \
         --file ${DOCKER_FILENAME} \
         ${BUILD_FOLDER}
 

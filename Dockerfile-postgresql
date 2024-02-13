@@ -10,7 +10,7 @@ LABEL maintainer="konvergence.com" \
       description="volume backup with duplicity using openstack swift, sftp or filesystem volume" \
       release="${RELEASE}"
 
-RUN echo "#### apt add source for postgresql-client focal" \
+RUN echo "#### install postgresql-client" \
     && apt-get update \
     && apt-get install -y ca-certificates gnupg wget \
     && echo "deb http://apt.postgresql.org/pub/repos/apt focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
