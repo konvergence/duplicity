@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+# 2.2.2, 2.2.2-r3, 2.2.2-pg12, 2.2.2-pg12-r3, 2.2.2-pg14, 2.2.2-pg14-r3, 2.2.2-pg15, 2.2.2-pg15-r3, 2.2.2-mysql80, 2.2.2-mysql80-r3
+
+* add mysql image
+
+
 # 2.2.2, 2.2.2-r2, 2.2.2-pg12, 2.2.2-pg12-r2, 2.2.2-pg14, 2.2.2-pg14-r2, 2.2.2-pg15, 2.2.2-pg15-r2
 
 * duplicity `incr` is now `incremental`
