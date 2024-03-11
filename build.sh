@@ -14,7 +14,7 @@ popd
 
 # Release Build of the Docker Image
 # Final Docker Image Name
-export IMAGE_BUILD="r3"
+export IMAGE_BUILD="r4"
 export DOCKER_REPO=konvergence/duplicity
 
 
@@ -39,7 +39,7 @@ echo "Building filesystem image"
 ./buildDockerImage.sh
 
 
-PG_VERSIONS="12 14 15"
+PG_VERSIONS="12 14 15 16"
 
 for PG_VERSION in ${PG_VERSIONS}; do
     export PG_VERSION
