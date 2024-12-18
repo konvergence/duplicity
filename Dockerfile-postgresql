@@ -1,4 +1,4 @@
-FROM konvergence/duplicity:2.2.2
+FROM konvergence/duplicity:3.0.3.2-r1
 
 ARG PG_VERSION
 

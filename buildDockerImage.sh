@@ -11,8 +11,8 @@ BUILD_FOLDER=$PWD
 popd
 
 
-RELEASE_MAJOR="2"
-RELEASE_MINOR="2.2"
+RELEASE_MAJOR="3"
+RELEASE_MINOR="0.3.2"
 RELEASE=${RELEASE_MAJOR}.${RELEASE_MINOR}
 
 if [ ! -z "${PG_VERSION}" ]; then
@@ -31,7 +31,9 @@ elif [ ! -z "${MYSQL_VERSION}" ]; then
 else
 
         DOCKER_FILENAME=$PWD/Dockerfile-base
-        BUILD_OPTIONS="--force-rm=true --no-cache=true"
+        #BUILD_OPTIONS="--force-rm=true --no-cache=true"
+        BUILD_OPTIONS=""
+
         
 fi
 

@@ -17,24 +17,24 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
        "--deamon"  wait infinity
        "--jobber-backup"  allow to schedule daily or monthly backup and into containers filesystem/swift/sftp if defined
 
-       "--backup  [[daily|monthly|closing] [filesystem|swift|sftp] [full|incremental]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
+       "--backup  [[daily|monthly|closing] [filesystem|s3|swift|sftp] [full|incremental]]"          : without args, run daily backup into ${DAILY_FILESYSTEM_CONTAINER} backend
 
-       "--delete-older <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
-       "--restore-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|swift|sftp]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--delete-older <time>" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, delete backup older than <time>  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore <time>" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, restore backup at <time> from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-latest" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, restore lastest backup from ${DAILY_FILESYSTEM_CONTAINER}
+       "--restore-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|s3|swift|sftp]  : without args, restore file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--content  <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
-       "--content-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content  <time>" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, show backup content xxxxx from ${DAILY_FILESYSTEM_CONTAINER}
+       "--content-latest" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, show latest tarball content  from ${DAILY_FILESYSTEM_CONTAINER}
 
 
-       "--list" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
+       "--list" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, list all backups from ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--cleanup" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
+       "--cleanup" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, cleanup ${DAILY_FILESYSTEM_CONTAINER}
 
-       "--compare <time>" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--compare-latest" [[daily|monthly|closing]  [filesystem|swift|sftp]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
-       "--comapre-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|swift|sftp]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare <time>" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, compare backup at <time> from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--compare-latest" [[daily|monthly|closing]  [filesystem|s3|swift|sftp]  : without args, compare lastest backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
+       "--comapre-path xxxxx <time>" [[daily|monthly|closing]]  [filesystem|s3|swift|sftp]  : without args, compare file xxxxx at <time> backup from ${DAILY_FILESYSTEM_CONTAINER} with ${DATA_FOLDER}
 
 
 ## Default general options
@@ -62,16 +62,21 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 	 - DB_COMPRESS_ENABLE=true
 	 - DB_COMPRESS_LEVEL=4
 
-##  OpenStack authentication for  SWIFT or SFTP container management
+##  OpenStack authentication for  SWIFT container management
     DAILY_OS_REGION_NAME=GRA3
     MONTHLY_OS_REGION_NAME=SBG3
-
 
     OS_AUTH_URL=https://auth.cloud.ovh.net/v2.0/
     OS_TENANT_ID=yourTenantID
     OS_TENANT_NAME=yourTenantName
     OS_USERNAME=yourUserName
     OS_PASSWORD=yourUserPassword
+
+## authentication for S3 container management
+    AWS_ACCESS_KEY_ID=xxxxx
+    AWS_SECRET_ACCESS_KEY=yyyyy
+    AWS_DEFAULT_REGION="eu-west-3"
+
 
 
 ## job management
@@ -110,7 +115,7 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
    using OS_XXXX variables (OS_REGION_NAME, OS_AUTH_URL, OS_TENANT_ID, OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD) for all  XXXX_SWIFT_CONTAINER
 
 ### retention
-     if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_[FILESYSTEM|SWIFT|SFTP]_CONTAINER}
+     if backup is succeed, then    remove backup  older than ${DAILY_BACKUP_MAX_WEEK} into ${DAILY_[filesystem|s3|swift|sftp]_CONTAINER}
 
 
 ###   Default values
@@ -122,7 +127,8 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 ####  Optionals variables
       DAILY_FILESYSTEM_CONTAINER=/backup              : nfs or local filesystem backup folder
       DAILY_SWIFT_CONTAINER=my-object-storage-gra3    : name of swift container
-      DAILY_SFTP_CONTAINER=my-object-storage-gra3    : name of sftp container
+      DAILY_SFTP_CONTAINER=my-object-storage-gra3     : name of sftp container
+      DAILY_S3_CONTAINER=my-shuttle-env               : name of S3 container
       DAILY_BACKUP_MAX_FULL=0 : if > 0, max full to keep
       DAILY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 
@@ -136,10 +142,10 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
 ## 	monthly backup management
 
 ###   working
-    backup is trigger from ${DATA_FOLDER}if day of month is ${MONTHLY_BACKUP_DAY} only if  ${MONTHLY_[FILESYSTEM|SWIFT|SFTP]_CONTAINER} are defined
+    backup is trigger from ${DATA_FOLDER}if day of month is ${MONTHLY_BACKUP_DAY} only if  ${MONTHLY_[filesystem|s3|swift|sftp]_CONTAINER} are defined
 
 ###   retention
-     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_[FILESYSTEM|SWIFT|SFTP]_CONTAINER}
+     if backup is succeed, then    remove backup full older than ${MONTHLY_BACKUP_MAX_MONTH} into ${MONTHLY_[filesystem|s3|swift|sftp]_CONTAINER}
 
 
 ###   Default values
@@ -151,6 +157,8 @@ docker run --rm konvergence/duplicity:${RELEASE} --help
       MONTHLY_FILESYSTEM_CONTAINER=/backup              : nfs or local filesystem backup folder
       MONTHLY_SWIFT_CONTAINER=my-archive-storage-sbg3    : name of swift container
       MONTHLY_SFTP_CONTAINER==my-archive-storage-sbg3    : name of swift container
+      MONTHLY_S3_CONTAINER=my-shuttle-env                : name of S3 container
+
       MONTHLY_BACKUP_MAX_FULL=0: if > 0 , max full to keep
       MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0: if > 0, max full with increments to keep
 

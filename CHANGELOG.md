@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+# 2024-12-17 : 3.0.3.2, 3.0.3.2-r1, 3.0.3.2-pg12, 3.0.3.2-pg12-r4, 3.0.3.2-pg14, 3.0.3.2-pg14-r4, 3.0.3.2-pg15, 3.0.3.2-pg15-r4, 3.0.3.2-pg16, 3.0.3.2-pg16-r4 , 3.0.3.2-mysql80, 3.0.3.2-mysql80-r4
+*  duplicity 3.0.3.2 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
+* add s3 container mode : need extraEnv
+      * AWS_ACCESS_KEY_ID=xxxxx
+      * AWS_SECRET_ACCESS_KEY=yyyyy
+      * AWS_DEFAULT_REGION="eu-west-3"
+      * DAILY_S3_CONTAINER=my-shuttle-env
+      * MONTHLY_S3_CONTAINER=my-shuttle-env
+
+
+
 
 # 2024-03-11 : 2.2.2, 2.2.2-r4, 2.2.2-pg12, 2.2.2-pg12-r4, 2.2.2-pg14, 2.2.2-pg14-r4, 2.2.2-pg15, 2.2.2-pg15-r4, 2.2.2-pg16, 2.2.2-pg16-r4 , 2.2.2-mysql80, 2.2.2-mysql80-r4
 
