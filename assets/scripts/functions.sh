@@ -484,6 +484,8 @@ backup_to_filesystem_container() {
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
+    local startedAt=$(date date  --iso-8601=seconds)
+
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
@@ -521,7 +523,7 @@ backup_to_filesystem_container() {
         duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
-            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
 
             if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
@@ -542,7 +544,7 @@ backup_to_filesystem_container() {
             fi
 
         else
-            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
         fi
 
         rm ${exclude_from_file}
