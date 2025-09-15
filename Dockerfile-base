@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # test mandatory args
 ARG RELEASE_MAJOR
@@ -35,12 +35,12 @@ RUN echo "#### add stable duplicity PPA https://code.launchpad.net/~duplicity-te
                           git curl  golang-go \
                           jq \
 && echo "#### intall duplicity from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
-   && apt-get install -y  python-pycryptopp python3-boto python3-boto3 python3-dev \
-   && apt-get install -y  duplicity=3.0.5.1-ppa202506251611~ubuntu20.04.1 \
+   && apt-get install -y  duplicity=3.0.5.1-ppa202506251611~ubuntu22.04.1 \
+   && apt-get install -y  python3-cryptography python3-boto python3-boto3 python3-dev \
 && echo "#### install sftp/scp paramiko module" \
-   && apt-get install -y python3-paramiko python-gobject-2 \
+   && apt-get install -y python3-paramiko python3-gi \
 && echo "#### install sftp/scp pexpect module" \
-   && apt-get install -y openssh-client python-pexpect \
+   && apt-get install -y openssh-client python3-pexpect \
 &&  echo "#### install jobber" \
     && mkdir -p /opt/go \
     && apt-get install -y build-essential \

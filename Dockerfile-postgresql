@@ -1,4 +1,4 @@
-FROM konvergence/duplicity:3.0.3.2-r1
+FROM konvergence/duplicity:3.0.5.1-r1
 
 ARG PG_VERSION
 
@@ -13,7 +13,7 @@ LABEL maintainer="konvergence.com" \
 RUN echo "#### install postgresql-client" \
     && apt-get update \
     && apt-get install -y ca-certificates gnupg wget \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt jammy-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && (wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null) \  
     && apt-get update \
     && apt-get install -y  postgresql-client-${PG_VERSION} \
