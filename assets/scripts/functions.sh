@@ -484,7 +484,7 @@ backup_to_filesystem_container() {
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
 
-    local startedAt=$(date date  --iso-8601=seconds)
+    local startedAt=$(date  --iso-8601=seconds)
 
     #dynamic variables
     local filesystem_container_variable="${planner}_FILESYSTEM_CONTAINER"
@@ -576,6 +576,8 @@ backup_to_s3_container() {
     local gpg_options=""
     local timstamp=""
 
+    local startedAt=$(date  --iso-8601=seconds)
+
     # Add the GPG_KEY options if GPG_KEY is defined
     # PASSPHRASE is required to use GPG
     [ ! -z "${GPG_KEY}" ] && gpg_options="--encrypt-key=${GPG_KEY} --sign-key=${GPG_KEY}" &&    [ -z ${PASSPHRASE+x} ] && exit_fatal_message "PASSPHRASE must be defined"
@@ -609,7 +611,7 @@ backup_to_s3_container() {
         duplicity ${backup_mode} ${duplicity_options} ${gpg_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
-            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
 
             if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
@@ -629,7 +631,7 @@ backup_to_s3_container() {
                 on_error_fatal_message "during prune older full backup"
             fi
         else
-            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
         fi
 
         rm ${exclude_from_file}
@@ -643,6 +645,8 @@ backup_to_swift_container() {
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    
+    local startedAt=$(date  --iso-8601=seconds)
 
     #dynamic variables
     local swift_container_variable="${planner}_SWIFT_CONTAINER"
@@ -689,7 +693,7 @@ backup_to_swift_container() {
         duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
-            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
 
             if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
@@ -709,7 +713,7 @@ backup_to_swift_container() {
                     on_error_fatal_message "during prune older full backup"
             fi
         else
-            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
         fi
         rm ${exclude_from_file}
     fi
@@ -723,6 +727,8 @@ backup_to_pca_container() {
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
+    
+    local startedAt=$(date  --iso-8601=seconds)
 
     #dynamic variables
     local pca_container_variable="${planner}_PCA_CONTAINER"
@@ -769,7 +775,7 @@ backup_to_pca_container() {
         duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
-            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            success_message "${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
 
             if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${duplicity_target}"
@@ -789,7 +795,7 @@ backup_to_pca_container() {
                     on_error_fatal_message "during prune older full backup"
             fi
         else
-            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target}"
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${duplicity_target} startedAt: ${startedAt}"
         fi
 
         rm ${exclude_from_file}
@@ -804,7 +810,9 @@ backup_to_sftp_container() {
     local backup_mode=${2,,}
     [ ${planner} != "DAILY" ] && [ ${planner} != "MONTHLY" ] && [ ${planner} != "CLOSING" ] && exit_fatal_message "unknown planner mode"
     [ ! -z "${backup_mode}" ] && [ ${backup_mode} != "incremental" ] && [ ${backup_mode} != "full" ] && exit_fatal_message "unknown backup mode"
-
+    
+    local startedAt=$(date  --iso-8601=seconds)
+    
     #dynamic variables
     local sftp_container_variable="${planner}_SFTP_CONTAINER"
     local max_full_with_incr_variable="${planner}_BACKUP_MAX_FULL_WITH_INCR"
@@ -814,7 +822,6 @@ backup_to_sftp_container() {
     local duplicity_target="${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
     local ssh_options="${SSH_OPTIONS}"
     local timstamp=""
-
 
     [ ! -z "${SFTP_PASSWORD}" ] && duplicity_target="${SFTP_MODULE}://${SFTP_USER}:${SFTP_PASSWORD}@${!sftp_container_variable}"
     [ ! -z "${SFTP_IDENTITYFILE}" ] && ssh_options="${ssh_options} -oIdentityFile=\'${SFTP_IDENTITYFILE}\'"
@@ -846,7 +853,7 @@ backup_to_sftp_container() {
         duplicity ${backup_mode} ${duplicity_options} --allow-source-mismatch --ssh-options="${ssh_options}" --volsize=${BACKUP_VOLUME_SIZE} --exclude-filelist ${exclude_from_file} ${DATA_FOLDER} ${duplicity_target}
 
         if [ $? -eq 0 ]; then
-            success_message "${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
+            success_message "${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable} startedAt: ${startedAt}"
 
             if [ ! -z "${timstamp}" ] && [ ${planner} != "CLOSING" ]; then
                 verbose_message "${planner} delete older backup than ${timstamp} with prefix ${!backup_prefix_variable} on ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
@@ -867,7 +874,7 @@ backup_to_sftp_container() {
             fi
 
         else
-            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable}"
+            fatal_message "during ${planner} backup ${DATA_FOLDER} to ${SFTP_MODULE}://${SFTP_USER}@${!sftp_container_variable} startedAt: ${startedAt}"
         fi
         rm ${exclude_from_file}
     fi
