@@ -274,6 +274,7 @@ make_closing_backup() {
   local planner=closing
   local container_type=${1,,}
   local backup_mode=${2,,}
+  local startedAt=$(date  --iso-8601=seconds)
 
 	local container_variable
 
@@ -309,10 +310,12 @@ make_closing_backup() {
       # if DB_TYPE  then make dump of db in ${DATA_FOLDER}
       if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
-    		if ! ${DB_TYPE}_backup.sh; then
+    	if ! ${DB_TYPE}_backup.sh; then
           echo "0" > ${CLOSING_STATE}
-  	      exit_fatal_message "backup error ${DB_TYPE}"
-    	  fi
+  	      exit_fatal_message "BACKUP: error ${DB_TYPE} startedAt: ${startedAt}"
+        else 
+          echo "BACKUP: success ${DB_TYPE} startedAt: ${startedAt}"
+    	fi
       fi
 
     	if [ -z "${container_type}" ]; then
@@ -366,6 +369,8 @@ make_backup() {
 
   local container_variable
 
+  local startedAt=$(date  --iso-8601=seconds)
+
 
     # CLOSING_FLAGFILE : 0 - nothing, 1 - requested, 2 pending
 	local closing_state=$(cat ${CLOSING_STATE})
@@ -402,8 +407,10 @@ make_backup() {
    if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
         ${DB_TYPE}_backup.sh
-        on_error_exit_fatal_message "backup error ${DB_TYPE}"
+        on_error_exit_fatal_message "BACKUP: error ${DB_TYPE} startedAt: ${startedAt}"
+        echo "BACKUP: success ${DB_TYPE} startedAt: ${startedAt}"
    fi
+
 
 # if no args, try all DAILY_xxxx_CONTAINER
     if [ -z "${planner}" ] && [ -z "${container_type}" ]; then
