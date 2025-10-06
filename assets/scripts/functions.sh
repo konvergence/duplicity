@@ -312,9 +312,9 @@ make_closing_backup() {
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
     	if ! ${DB_TYPE}_backup.sh; then
           echo "0" > ${CLOSING_STATE}
-  	      exit_fatal_message "BACKUP: error ${DB_TYPE} startedAt: ${startedAt}"
+  	      exit_fatal_message "DUMP: error ${DB_TYPE} startedAt: ${startedAt}"
         else 
-          echo "BACKUP: success ${DB_TYPE} startedAt: ${startedAt}"
+          echo "DUMP: success ${DB_TYPE} startedAt: ${startedAt}"
     	fi
       fi
 
@@ -407,8 +407,8 @@ make_backup() {
    if [ ! -z ${DB_TYPE+x} ] && [ "$DB_TYPE" != "none" ]; then
         verbose_message "make ${DB_TYPE} database dump into ${DATA_FOLDER}/${DB_DUMP_FILE}"
         ${DB_TYPE}_backup.sh
-        on_error_exit_fatal_message "BACKUP: error ${DB_TYPE} startedAt: ${startedAt}"
-        echo "BACKUP: success ${DB_TYPE} startedAt: ${startedAt}"
+        on_error_exit_fatal_message "DUMP: error ${DB_TYPE} startedAt: ${startedAt}"
+        echo "DUMP: success ${DB_TYPE} startedAt: ${startedAt}"
    fi
 
 
