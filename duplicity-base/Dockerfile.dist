@@ -1,25 +1,22 @@
-FROM ubuntu:22.04
+FROM ${FROMIMAGE}
+# mandatory args
+ARG ARG_DUPLICITY_RELEASE \
+    ARG_RELEASE_TAG \
+    ARG_RELEASE_FULL_TAG \
+    ARG_KSHUTTLE_COPYRIGHT
+
 
 # test mandatory args
-ARG RELEASE_MAJOR
-ARG RELEASE_MINOR
-ARG RELEASE
-
-
-RUN [ -n "${RELEASE}" ] && [ -n "${RELEASE_MAJOR}" ] && [ -n "${RELEASE_MINOR}" ]
-
-# Image Label
-LABEL maintainer="konvergence.com" \
-      website="https://www.konvergence.com" \
-      description="volume backup with duplicity using openstack swift, sftp or filesystem volume" \
-      release="${RELEASE}"
+RUN  printenv ARG_DUPLICITY_RELEASE \
+  && printenv ARG_RELEASE_TAG \
+  && printenv ARG_RELEASE_FULL_TAG \
+  && printenv ARG_KSHUTTLE_COPYRIGHT
 
 ENV GOPATH=/opt/go \
     DEBIAN_FRONTEND=noninteractive
 
 ARG JOBBER_VERSION="v1.4.4"
-ARG DUPLICITY_RELEASE=3.0.5.1
-
+ARG DUPLICITY_RELEASE=$ARG_DUPLICITY_RELEASE
 
 RUN echo "#### add stable duplicity PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
     && apt-get update \
@@ -35,7 +32,7 @@ RUN echo "#### add stable duplicity PPA https://code.launchpad.net/~duplicity-te
                           git curl  golang-go \
                           jq \
 && echo "#### intall duplicity from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
-   && apt-get install -y  duplicity=3.0.5.1-ppa202506251611~ubuntu22.04.1 \
+   && apt-get install -y  duplicity=${DUPLICITY_RELEASE}.post1-ppa202512311207~ubuntu22.04.1 \
    && apt-get install -y  python3-cryptography python3-boto python3-boto3 python3-dev \
 && echo "#### install sftp/scp paramiko module" \
    && apt-get install -y python3-paramiko python3-gi \
@@ -136,3 +133,11 @@ VOLUME [ "${DATA_FOLDER}" ]
 # Entrypoint and CMD
 ENTRYPOINT ["/tini", "--", "bash", "/bin/entrypoint-init.sh" ]
 CMD ["--help"]
+
+# metadata: see https://github.com/opencontainers/image-spec
+# add labels according OCI specification
+LABEL org.opencontainers.image.title="baseimage" \
+      org.opencontainers.image.description= description="volume backup with duplicity using  swift, sftp, s3 or filesystem volume" \
+      org.opencontainers.image.version="${ARG_RELEASE_FULL_TAG}" \
+      org.opencontainers.image.authors="kShuttle" \
+      org.opencontainers.image.licenses="${ARG_KSHUTTLE_COPYRIGHT}"

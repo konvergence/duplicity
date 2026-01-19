@@ -1,4 +1,4 @@
-FROM konvergence/duplicity:3.0.5.1-r2
+FROM konvergence/duplicity:3.0.7
 
 ARG MYSQL_VERSION
 

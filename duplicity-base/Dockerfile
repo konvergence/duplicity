@@ -1,0 +1,143 @@
+FROM ubuntu:22.04
+# mandatory args
+ARG ARG_DUPLICITY_RELEASE \
+    ARG_RELEASE_TAG \
+    ARG_RELEASE_FULL_TAG \
+    ARG_KSHUTTLE_COPYRIGHT
+
+
+# test mandatory args
+RUN  printenv ARG_DUPLICITY_RELEASE \
+  && printenv ARG_RELEASE_TAG \
+  && printenv ARG_RELEASE_FULL_TAG \
+  && printenv ARG_KSHUTTLE_COPYRIGHT
+
+ENV GOPATH=/opt/go \
+    DEBIAN_FRONTEND=noninteractive
+
+ARG JOBBER_VERSION="v1.4.4"
+ARG DUPLICITY_RELEASE=$ARG_DUPLICITY_RELEASE
+
+RUN echo "#### add stable duplicity PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
+    && apt-get update \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:duplicity-team/duplicity-release-git \
+&& echo "#### install needed packages for focal" \    
+   && apt-get update \
+   && apt-get install -y --no-install-recommends apt-utils \
+   && apt-get install -y  tzdata \
+                          gettext-base \
+                          python3-swiftclient \
+                          msmtp \
+                          git curl  golang-go \
+                          jq \
+&& echo "#### intall duplicity from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git" \
+   && apt-get install -y  duplicity=${DUPLICITY_RELEASE}.post1-ppa202512311207~ubuntu22.04.1 \
+   && apt-get install -y  python3-cryptography python3-boto python3-boto3 python3-dev \
+&& echo "#### install sftp/scp paramiko module" \
+   && apt-get install -y python3-paramiko python3-gi \
+&& echo "#### install sftp/scp pexpect module" \
+   && apt-get install -y openssh-client python3-pexpect \
+&&  echo "#### install jobber" \
+    && mkdir -p /opt/go \
+    && apt-get install -y build-essential \
+    && mkdir -p /opt/go/src/github.com/dshearer/jobber/ \
+    && curl -sSL "https://github.com/dshearer/jobber/archive/${JOBBER_VERSION}.tar.gz" | tar -xz -C /opt/go/src/github.com/dshearer/jobber/ --strip-components=1 \
+    && make --directory=/opt/go/src/github.com/dshearer/jobber \
+&& echo "#### prepare jobber deamon" \
+    && mkdir -p /opt/go/jobber \
+    && cp /opt/go/src/github.com/dshearer/jobber/bin/* /opt/go/jobber \
+    && cd /usr/local/bin/ \
+    && ln -f -s /opt/go/jobber/jobber jobber \
+    && mkdir -p /usr/local/lib/jobber \
+    && rm -rf /opt/go/src/ \
+&& echo "#### clean " \
+     && apt-get clean \
+     && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /tmp/*
+
+COPY assets/jobber/jobber.conf /etc/jobber.conf
+
+
+# Add Tini
+ARG TINI_VERSION="v0.19.0"
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+
+# Add scripts
+COPY assets/scripts/ /bin/
+RUN chmod +x /bin/*.sh
+
+
+# template of msmtprc config
+COPY assets/msmtprc/ /usr/share/msmtprc/
+
+
+# Readme and changelog
+##COPY releases/${RELEASE}/USAGE.md  releases/${RELEASE}/CHANGELOG.md /
+COPY USAGE.md  CHANGELOG.md /
+
+
+
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    RELEASE=${RELEASE} \
+    TZ=Europe/Paris \
+    DATA_FOLDER=/data \
+    EXCLUDE_PATHS="" \
+    VERBOSE=yes \
+    VERBOSE_PROGRESS=yes \
+    CLEAN_BEFORE_RESTORE=no \
+    DB_TYPE=none \
+    DB_DUMP_FILE=dumpall.out \
+    DB_COMPRESS_ENABLE=false \
+    DB_COMPRESS_LEVEL=4 \
+    FULL_MODE=false \
+    OS_AUTH_URL=https://auth.cloud.ovh.net/v3/ \
+    SWIFT_AUTHVERSION=3 \
+    OS_TENANT_ID=yourTenantID \
+    OS_TENANT_NAME=yourTenantName \
+    OS_USERNAME=yourUserName \
+    OS_PASSWORD=yourUserPassword \
+    BACKUP_VOLUME_SIZE=256 \
+    DAILY_JOB_HOUR="00 00 02" \
+    DAILY_BACKUP_FULL_DAY=0 \
+    DAILY_BACKUP_MAX_WEEK=5 \
+    DAILY_BACKUP_PREFIX=backup \
+    DAILY_OS_REGION_NAME=GRA \
+    MONTHLY_BACKUP_DAY=1 \
+    MONTHLY_BACKUP_PREFIX=archive \
+    MONTHLY_BACKUP_MAX_MONTH=12 \
+    MONTHLY_OS_REGION_NAME=SBG \
+    SFTP_MODULE=pexpect+sftp \
+    DB_SKIP_DROP=false \
+    DB_DATABASES=""
+
+
+##    PASSPHRASE=YourSuperPassPhrase \
+##    DAILY_BACKUP_MAX_FULL_WITH_INCR=0 \
+##    DAILY_BACKUP_MAX_FULL=0 \
+##    MONTHLY_BACKUP_MAX_FULL_WITH_INCR=0 \
+##    MONTHLY_BACKUP_MAX_FULL=0 \
+##    DAILY_FILESYSTEM_CONTAINER="/backup" \
+##    DAILY_SWIFT_CONTAINER="my-object-storage-gra3" \
+##    MONTHLY_FILESYSTEM_CONTAINER="/backup" \
+##    MONTHLY_SWIFT_CONTAINER="my-archive-storage-gra3"
+
+
+# Metadata
+VOLUME [ "${DATA_FOLDER}" ]
+
+
+# Entrypoint and CMD
+ENTRYPOINT ["/tini", "--", "bash", "/bin/entrypoint-init.sh" ]
+CMD ["--help"]
+
+# metadata: see https://github.com/opencontainers/image-spec
+# add labels according OCI specification
+LABEL org.opencontainers.image.title="baseimage" \
+      org.opencontainers.image.description= description="volume backup with duplicity using  swift, sftp, s3 or filesystem volume" \
+      org.opencontainers.image.version="${ARG_RELEASE_FULL_TAG}" \
+      org.opencontainers.image.authors="kShuttle" \
+      org.opencontainers.image.licenses="${ARG_KSHUTTLE_COPYRIGHT}"

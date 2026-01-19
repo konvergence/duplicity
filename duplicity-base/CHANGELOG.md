@@ -1,11 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+# 2026-01-16 : 3.0.7, 3.0.7-pg12, 3.0.7-pg14, 3.0.7-pg15, , 3.0.7-pg16, 3.0.7-pg17, 3.0.7-mysql80
+* duplicity 3.0.7 from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
+* add timestamps to backup logs
+* add timestamps to dump logs
+* upgrade to ubuntu 22.04
+
+
+
 # 2025-09-16 : 3.0.5.1, 3.0.5.1-r2, 3.0.5.1-pg12, 3.0.5.1-pg12-r2, 3.0.5.1-pg14, 3.0.5.1-pg14-r2, 3.0.5.1-pg15, 3.0.5.1-pg15-r2, 3.0.5.1-pg16, 3.0.5.1-pg16-r2 , 3.0.5.1-mysql80, 3.0.5.1-mysql80-r2
 * duplicity 3.0.5.1-r2 from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
 * add timestamps to backup logs
 * add timestamps to dump logs
 * upgrade to ubuntu 22.04
+
+
 
 # 2024-12-17 : 3.0.3.2, 3.0.3.2-r1, 3.0.3.2-pg12, 3.0.3.2-pg12-r4, 3.0.3.2-pg14, 3.0.3.2-pg14-r4, 3.0.3.2-pg15, 3.0.3.2-pg15-r4, 3.0.3.2-pg16, 3.0.3.2-pg16-r4 , 3.0.3.2-mysql80, 3.0.3.2-mysql80-r4
 *  duplicity 3.0.3.2 from from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git

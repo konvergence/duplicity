@@ -35,11 +35,11 @@ export DOCKER_REPO=konvergence/duplicity
 export PG_VERSION=""
 export MYSQL_VERSION=""
 
-echo "Building filesystem image"
-./buildDockerImage.sh
+# echo "Building filesystem image"
+# ./buildDockerImage.sh
 
 
-PG_VERSIONS="12 14 15 16"
+PG_VERSIONS="12 14 15 16 17"
 
 for PG_VERSION in ${PG_VERSIONS}; do
     export PG_VERSION
