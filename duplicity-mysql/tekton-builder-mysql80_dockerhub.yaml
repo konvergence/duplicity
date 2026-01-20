@@ -15,13 +15,13 @@ spec:
     - name: image-name
       value: duplicity
     - name: dockerfile-context
-      value: duplicity-postgres
+      value: duplicity-mysql
     - name: dockerfile-name
-      value: duplicity-postgres/Dockerfile
+      value: duplicity-mysql/Dockerfile
     - name: build-args
-      value: duplicity-postgres/mysql80_build_args.txt
+      value: duplicity-mysql/mysql80_build_args.txt
     - name: build-tags
-      value: duplicity-postgres/mysql80_build_tags.txt
+      value: duplicity-mysql/mysql80_build_tags.txt
     - name: build-log-level
       value: info
       
