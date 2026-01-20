@@ -1,14 +1,16 @@
-FROM konvergence/duplicity:3.0.7FROM ${FROMIMAGE}
+FROM ${FROMIMAGE}
 
 
 # mandatory args
 ARG ARG_MYSQL_RELEASE \
+    ARG_MYSQL_TAG_VERSION \
     ARG_RELEASE_TAG \
     ARG_RELEASE_FULL_TAG \
     ARG_KSHUTTLE_COPYRIGHT
 
 
 RUN printenv ARG_MYSQL_RELEASE \
+  && printenv ARG_MYSQL_TAG_VERSION \
   && printenv ARG_RELEASE_TAG \
   && printenv ARG_RELEASE_FULL_TAG \
   && printenv ARG_KSHUTTLE_COPYRIGHT 

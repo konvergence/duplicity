@@ -2,9 +2,9 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   namespace: tekton-builder-library-duplicity
-  name: lab-k8s-docker-builder-run-duplicity-mysql8.0
+  name: lab-k8s-docker-builder-run-duplicity-mysql80
   labels:
-    docker-builder: duplicity-mysql8.0
+    docker-builder: duplicity-mysql80
 spec:
   params:
     - name: git-url
@@ -19,9 +19,9 @@ spec:
     - name: dockerfile-name
       value: duplicity-postgres/Dockerfile
     - name: build-args
-      value: duplicity-postgres/mysql8.0_build_args.txt
+      value: duplicity-postgres/mysql80_build_args.txt
     - name: build-tags
-      value: duplicity-postgres/mysql8.0_build_tags.txt
+      value: duplicity-postgres/mysql80_build_tags.txt
     - name: build-log-level
       value: info
       
