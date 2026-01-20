@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-# 2026-01-16 : 3.0.7, 3.0.7-pg12, 3.0.7-pg14, 3.0.7-pg15, , 3.0.7-pg16, 3.0.7-pg17, 3.0.7-mysql80
+# 2026-01-20 : 3.0.7, 3.0.7-r1, 3.0.7-pg12 3.0.7-pg12-r1, 3.0.7-pg14, 3.0.7-pg14-r1, 3.0.7-pg15, 3.0.7-pg15-r1 , 3.0.7-pg16, 3.0.7-pg16r1, 3.0.7-pg17, 3.0.7-pg17-r1, 3.0.7-mysql80, 3.0.7-mysql80-r1
 * duplicity 3.0.7 from stable PPA https://code.launchpad.net/~duplicity-team/+archive/ubuntu/duplicity-release-git
 * add timestamps to backup logs
 * add timestamps to dump logs

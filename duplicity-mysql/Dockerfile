@@ -1,0 +1,35 @@
+FROM konvergence/duplicity:3.0.7FROM lab-k8s-harbor.shuttle-cloud.com/library/duplicity:3.0.7-r1
+
+
+# mandatory args
+ARG ARG_MYSQL_RELEASE \
+    ARG_RELEASE_TAG \
+    ARG_RELEASE_FULL_TAG \
+    ARG_KSHUTTLE_COPYRIGHT
+
+
+RUN printenv ARG_MYSQL_RELEASE \
+  && printenv ARG_RELEASE_TAG \
+  && printenv ARG_RELEASE_FULL_TAG \
+  && printenv ARG_KSHUTTLE_COPYRIGHT 
+
+ARG MYSQL_VERSION=${ARG_MYSQL_RELEASE}
+
+RUN [ -n "${MYSQL_VERSION}" ]
+
+RUN echo "#### install mysql-client" \
+    && apt-get update \
+    && apt-get install -y mysql-client-${MYSQL_VERSION} \
+&& echo "#### clean " \
+     && apt-get clean \
+     && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /tmp/*
+
+
+# metadata: see https://github.com/opencontainers/image-spec
+# add labels according OCI specification
+LABEL org.opencontainers.image.title="duplicity mysql" \
+      org.opencontainers.image.description= description="volume backup mysql export with duplicity using  swift, sftp, s3 or filesystem volume" \
+      org.opencontainers.image.version="${ARG_RELEASE_FULL_TAG}" \
+      org.opencontainers.image.authors="kShuttle" \
+      org.opencontainers.image.licenses="${ARG_KSHUTTLE_COPYRIGHT}"

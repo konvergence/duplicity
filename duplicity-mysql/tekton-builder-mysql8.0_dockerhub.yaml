@@ -1,0 +1,59 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: tekton-builder-library-duplicity
+  name: lab-k8s-docker-builder-run-duplicity-mysql8.0
+  labels:
+    docker-builder: duplicity-mysql8.0
+spec:
+  params:
+    - name: git-url
+      value: https://gitea.shuttle-cloud.com/docker/duplicity.git
+    - name: image-registry
+      #value: lab-k8s-harbor.shuttle-cloud.com/library
+      value:  docker.io/konvergence
+    - name: image-name
+      value: duplicity
+    - name: dockerfile-context
+      value: duplicity-postgres
+    - name: dockerfile-name
+      value: duplicity-postgres/Dockerfile
+    - name: build-args
+      value: duplicity-postgres/mysql8.0_build_args.txt
+    - name: build-tags
+      value: duplicity-postgres/mysql8.0_build_tags.txt
+    - name: build-log-level
+      value: info
+      
+
+  pipelineRef:
+    params:
+      - name: name
+        value: image-builder
+      - name: namespace
+        value: tekton-catalog
+      - name: kind
+        value: pipeline
+    resolver: cluster
+  taskRunTemplate:
+    serviceAccountName: default
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+        status: {}
+    - name: git-credentials
+      secret:
+        secretName: git-basic-auth
+    - name: docker-credentials
+      secret:
+        secretName: docker-basic-auth
