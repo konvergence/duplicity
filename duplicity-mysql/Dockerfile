@@ -1,4 +1,4 @@
-FROM lab-k8s-harbor.shuttle-cloud.com/library/duplicity:3.0.7-r1
+FROM konvergence/duplicity:3.0.7-r1
 
 
 # mandatory args

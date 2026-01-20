@@ -10,8 +10,8 @@ UBUNTU_RELEASE=jammy
 DOCKERFILE_RELEASE=1
 
 # generate Dockerfile
-#FROM_REGISTRY=docker.io/library
-FROM_REGISTRY=lab-k8s-harbor.shuttle-cloud.com/library
+FROM_REGISTRY=konvergence
+#FROM_REGISTRY=lab-k8s-harbor.shuttle-cloud.com/library
 export FROMIMAGE=${FROM_REGISTRY}/duplicity:${DUPLICITY_RELEASE}-r${DOCKERFILE_RELEASE}
 envsubst '${FROMIMAGE}'  < Dockerfile.dist > Dockerfile
 
