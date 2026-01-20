@@ -10,7 +10,8 @@ spec:
     - name: git-url
       value: https://gitea.shuttle-cloud.com/docker/duplicity.git
     - name: image-registry
-      value: lab-k8s-harbor.shuttle-cloud.com/library
+      #value: lab-k8s-harbor.shuttle-cloud.com/library
+      value:  docker.io/konvergence
     - name: image-name
       value: duplicity
     - name: dockerfile-context

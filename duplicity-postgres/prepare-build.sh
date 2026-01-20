@@ -42,4 +42,6 @@ echo ARG_PG_RELEASE=${PG_VERSION} >> pg${PG_VERSION}_build_args.txt
 echo ARG_RELEASE_TAG=${DOCKER_RELEASE_TAG} >> pg${PG_VERSION}_build_args.txt
 echo ARG_RELEASE_FULL_TAG=${TAG1} >> pg${PG_VERSION}_build_args.txt
 
+
+envsubst '${PG_VERSION}'  < tekton-builder-dockerhub.dist > tekton-builder-pg${PG_VERSION}_dockerhub.yaml
 done

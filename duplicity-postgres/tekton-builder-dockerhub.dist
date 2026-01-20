@@ -2,25 +2,26 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   namespace: tekton-builder-library-duplicity
-  name: lab-k8s-docker-builder-run-duplicity
+  name: lab-k8s-docker-builder-run-duplicity-pg${PG_VERSION}
   labels:
-    docker-builder: duplicity
+    docker-builder: duplicity-pg${PG_VERSION}
 spec:
   params:
     - name: git-url
       value: https://gitea.shuttle-cloud.com/docker/duplicity.git
     - name: image-registry
-      value: lev-k8s-harbor.shuttle-cloud.com/library
+      #value: lab-k8s-harbor.shuttle-cloud.com/library
+      value:  docker.io/konvergence
     - name: image-name
       value: duplicity
     - name: dockerfile-context
-      value: duplicity-base
+      value: duplicity-postgres
     - name: dockerfile-name
-      value: duplicity-base/Dockerfile
+      value: duplicity-postgres/Dockerfile
     - name: build-args
-      value: duplicity-base/build_args.txt
+      value: duplicity-postgres/pg${PG_VERSION}_build_args.txt
     - name: build-tags
-      value: duplicity-base/build_tags.txt
+      value: duplicity-postgres/pg${PG_VERSION}_build_tags.txt
     - name: build-log-level
       value: info
       
