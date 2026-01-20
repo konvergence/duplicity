@@ -24,7 +24,7 @@ for MYSQL_VERSION in ${MYSQL_VERSIONS}; do
 
 # tags : * the tag will be [java-major-version].[tomcat-major-version].[tomcat-minor-version](-[tomcat-patch])(_[dockerfile-release](_(vendor-release)))
 DOCKER_IMAGE=duplicity
-DOCKER_RELEASE_TAG=${DUPLICITY_RELEASE}-mysql${MYSQL_VERSION}
+DOCKER_RELEASE_TAG=${DUPLICITY_RELEASE}-mysql${MYSQL_VERSION//./}
 
 
 # example: 21.9.0-98-temurin-jammy-r98, 21.9.0-98-temurin-jammy, 21.9.0-98, 21.9.0
@@ -34,15 +34,15 @@ TAG2=${DOCKER_RELEASE_TAG}
 BUILD_TAGS=()
 BUILD_TAGS+=("${TAG1}")
 BUILD_TAGS+=("${TAG2}")
-printf "%s\n" "${BUILD_TAGS[@]}" > mysql${MYSQL_VERSION}_build_tags.txt
+printf "%s\n" "${BUILD_TAGS[@]}" > mysql${MYSQL_VERSION//./}_build_tags.txt
 
 # Dockerfile ARGs for build
->mysql${MYSQL_VERSION}_build_args.txt
-echo ARG_KSHUTTLE_COPYRIGHT=Copyright $(date "+%Y") kShuttle - All rights reserved >> mysql${MYSQL_VERSION}_build_args.txt
-echo ARG_PG_RELEASE=${MYSQL_VERSION} >> mysql${MYSQL_VERSION}_build_args.txt
-echo ARG_RELEASE_TAG=${DOCKER_RELEASE_TAG} >> mysql${MYSQL_VERSION}_build_args.txt
-echo ARG_RELEASE_FULL_TAG=${TAG1} >> mysql${MYSQL_VERSION}_build_args.txt
+>mysql${MYSQL_VERSION//./}_build_args.txt
+echo ARG_KSHUTTLE_COPYRIGHT=Copyright $(date "+%Y") kShuttle - All rights reserved >> mysql${MYSQL_VERSION//./}_build_args.txt
+echo ARG_PG_RELEASE=${MYSQL_VERSION} >> mysql${MYSQL_VERSION//./}_build_args.txt
+echo ARG_RELEASE_TAG=${DOCKER_RELEASE_TAG} >> mysql${MYSQL_VERSION//./}_build_args.txt
+echo ARG_RELEASE_FULL_TAG=${TAG1} >> mysql${MYSQL_VERSION//./}_build_args.txt
 
 
-envsubst '${MYSQL_VERSION}'  < tekton-builder-dockerhub.dist > tekton-builder-mysql${MYSQL_VERSION}_dockerhub.yaml
+envsubst '${MYSQL_VERSION}'  < tekton-builder-dockerhub.dist > tekton-builder-mysql${MYSQL_VERSION//./}_dockerhub.yaml
 done
