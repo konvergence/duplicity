@@ -8,7 +8,7 @@ metadata:
 spec:
   params:
     - name: git-url
-      value: https://gitea.shuttle-cloud.com/docker/duplicity.git
+      value: https://github.com/konvergence/duplicity.git
     - name: image-registry
       #value: lab-k8s-harbor.shuttle-cloud.com/library
       value:  docker.io/konvergence
