@@ -1055,7 +1055,8 @@ restore_backup_from_filesystem_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_RESTORE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_RESTORE}"
     fi
 
@@ -1137,7 +1138,8 @@ restore_backup_from_s3_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_RESTORE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_RESTORE}"
     fi
 
@@ -1205,7 +1207,8 @@ restore_backup_from_swift_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_RESTORE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_RESTORE}"
     fi
 
@@ -1273,7 +1276,8 @@ restore_backup_from_pca_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_RESTORE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_RESTORE}"
     fi
 
@@ -1338,7 +1342,8 @@ restore_backup_from_sftp_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_RESTORE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_RESTORE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_RESTORE}"
     fi
 
@@ -1823,7 +1828,8 @@ compare_backup_from_filesystem_container() {
 
     [ "${VERBOSE_PROGRESS}" == "yes" ] && duplicity_options="${duplicity_options} --progress"
     if [ ! -z "${PATH_TO_COMPARE}" ]; then
-        duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_COMPARE}"
+        #duplicity_options="${duplicity_options} --file-to-restore ${PATH_TO_COMPARE}"
+        duplicity_options="${duplicity_options} --path-to-restore ${PATH_TO_RESTORE}"
         DATA_FOLDER="${DATA_FOLDER}/${PATH_TO_COMPARE}"
     fi
 
